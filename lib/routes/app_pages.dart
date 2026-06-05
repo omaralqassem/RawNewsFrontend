@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:rawnes/modules/aboutUs/about_binding.dart';
+import 'package:rawnes/modules/aboutUs/about_view.dart';
 import 'package:rawnes/modules/home/home_binding.dart';
 import 'package:rawnes/modules/home/home_view.dart';
 import 'package:rawnes/modules/login/login_binding.dart';
@@ -42,6 +44,11 @@ class AppPages {
       name: Routes.PROFILE,
       page: () => const ProfileView(),
       binding: ProfileBinding(),
+    ),
+    GetPage(
+      name: Routes.ABOUT,
+      page: () => const AboutView(),
+      binding: AboutBinding(),
     ),
   ];
 }

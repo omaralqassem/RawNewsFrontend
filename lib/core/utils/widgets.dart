@@ -89,7 +89,7 @@ class EditorialSectionHeader extends StatelessWidget {
             fontSize: 15,
             fontWeight: FontWeight.w900,
             color: AppColors.actionBlue,
-            fontFamily: "Courier", // Print aesthetic
+            fontFamily: "Courier",
           ),
         ),
         Text(
