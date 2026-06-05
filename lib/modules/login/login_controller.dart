@@ -28,7 +28,7 @@ class LoginController extends GetxController {
   }
 
   void navigateToRegister() {
-    Get.toNamed('/register');
+    Get.toNamed('/sign-up');
   }
 
   @override

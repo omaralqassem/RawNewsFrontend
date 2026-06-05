@@ -57,7 +57,7 @@ class LoginView extends GetView<LoginController> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        "welcome_back".tr,
+                        "Welcome Back",
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
@@ -69,18 +69,9 @@ class LoginView extends GetView<LoginController> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        "login_inst".tr,
-                        style: TextStyle(
-                          fontSize: 14,
-                          height: 1.4,
-                          color: textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 36),
 
                       _UnderlineTextField(
-                        hintText: "email_phone".tr,
+                        hintText: "Email or Phone",
                         icon: Icons.alternate_email_rounded,
                         controller: controller.identifierCtrl,
                         validator: Validators.emailOrSyrianMobile,
@@ -107,7 +98,7 @@ class LoginView extends GetView<LoginController> {
                           borderColor: borderColor,
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'password_required'.tr;
+                              return 'Password Required';
                             }
                             return null;
                           },
@@ -140,7 +131,7 @@ class LoginView extends GetView<LoginController> {
                         () => _EditorialActionButton(
                           isLoading: controller.isLoading.value,
                           onPressed: controller.login,
-                          label: "login".tr,
+                          label: "Log In",
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -153,7 +144,7 @@ class LoginView extends GetView<LoginController> {
                           ),
                           child: RichText(
                             text: TextSpan(
-                              text: "${"dont_have_account".tr.toUpperCase()}  ",
+                              text: "${"dont have account".toUpperCase()}  ",
                               style: TextStyle(
                                 color: textSecondary,
                                 fontSize: 11,

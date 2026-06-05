@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
 
       initialBinding: InitialBinding(),
 
-      initialRoute: AppPages.INITIAL,
+      initialRoute: AppPages.HOME,
       getPages: AppPages.routes,
     );
   }
