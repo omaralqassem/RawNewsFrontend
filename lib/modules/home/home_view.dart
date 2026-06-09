@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rawnes/core/constants/app_colors.dart';
 import 'package:rawnes/core/utils/widgets.dart';
+import 'package:rawnes/modules/NewsFeed/news_feed_view.dart';
+import 'package:rawnes/modules/bookmarks/bookmarks_view.dart';
+import 'package:rawnes/modules/search/search_view.dart';
 
 import 'home_controller.dart';
 
@@ -22,9 +25,9 @@ class HomeView extends GetView<HomeController> {
         : AppColors.lightTextPrimary;
 
     final List<Widget> pages = [
-      const _PlaceholderPage(title: "FEED"),
-      const _PlaceholderPage(title: "SEARCH"),
-      const _PlaceholderPage(title: "BOOKMARKS"),
+      const FeedView(),
+      const SearchView(),
+      const BookmarksView(),
       const _PlaceholderPage(title: "PREFERENCES"),
     ];
 
