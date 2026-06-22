@@ -1,44 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:rawnes/modules/home/home_controller.dart';
+import '../../../core/services/auth_service.dart';
+import 'profile_model.dart';
 
 class ProfileController extends GetxController {
   final formKey = GlobalKey<FormState>();
 
-  late TextEditingController nameCtrl;
   late TextEditingController usernameCtrl;
   late TextEditingController emailCtrl;
   late TextEditingController phoneCtrl;
 
   final selectedImagePath = "".obs;
   final isLoading = false.obs;
+  final isProfileLoading = true.obs;
+  final rxUser = Rxn<UserModel>();
+
   final selectedTopics = <String>[].obs;
   final List<String> availableTopics = [
-    "POLITICS",
-    "TECHNOLOGY",
-    "BUSINESS",
-    "SCIENCE",
-    "CULTURE",
-    "SPORTS",
-    "HEALTH",
+    "POLITICS", "TECHNOLOGY", "BUSINESS",
+    "SCIENCE", "CULTURE", "SPORTS", "HEALTH",
   ];
 
-  late HomeController _homeController;
+  final AuthService _authService = AuthService();
 
   @override
   void onInit() {
     super.onInit();
-    _homeController = Get.find<HomeController>();
+    usernameCtrl = TextEditingController();
+    emailCtrl = TextEditingController();
+    phoneCtrl = TextEditingController();
+    fetchProfile();
+  }
 
-    final currentUser = _homeController.rxUser.value;
+  Future<void> fetchProfile() async {
+    try {
+      isProfileLoading.value = true;
+      final response = await _authService.getProfile();
 
-    nameCtrl = TextEditingController(text: currentUser?.name);
-    emailCtrl = TextEditingController(text: currentUser?.email);
-    phoneCtrl = TextEditingController(text: currentUser?.phone);
-
-    if (currentUser?.preferredTopics != null) {
-      selectedTopics.assignAll(currentUser!.preferredTopics);
+      if (response.containsKey('email')) {
+        final user = UserModel.fromJson(response);
+        rxUser.value = user;
+        usernameCtrl.text = user.username;
+        emailCtrl.text = user.email;
+        phoneCtrl.text = user.phone;
+      } else {
+        Get.snackbar('Error', 'Failed to load profile');
+      }
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+    } finally {
+      isProfileLoading.value = false;
     }
   }
 
@@ -52,20 +64,15 @@ class ProfileController extends GetxController {
 
   Future<void> pickProfilePhoto() async {
     try {
-      final FilePickerResult? result = await FilePicker.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.image,
         allowMultiple: false,
       );
-
       if (result != null && result.files.single.path != null) {
         selectedImagePath.value = result.files.single.path!;
       }
     } catch (e) {
-      Get.snackbar(
-        "Error title",
-        "failed to pick file",
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      Get.snackbar('Error', 'Failed to pick file');
     }
   }
 
@@ -74,35 +81,21 @@ class ProfileController extends GetxController {
 
     isLoading.value = true;
     try {
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await _authService.updateProfile({
+        'username': usernameCtrl.text.trim(),
+        'email': emailCtrl.text.trim(),
+      });
 
-      final currentUser = _homeController.rxUser.value;
-      if (currentUser != null) {
-        final updatedUser = currentUser.copyWith(
-          name: nameCtrl.text.trim(),
-          email: emailCtrl.text.trim(),
-          phone: phoneCtrl.text.trim(),
-          preferredTopics: selectedTopics.toList(),
-          avatarUrl: selectedImagePath.value.isNotEmpty
-              ? selectedImagePath.value
-              : currentUser.avatarUrl,
-        );
-
-        _homeController.rxUser.value = updatedUser;
+      if (response.containsKey('email')) {
+        final user = UserModel.fromJson(response);
+        rxUser.value = user;
+        Get.snackbar('Success ✅', 'Profile updated successfully');
+        Get.back();
+      } else {
+        Get.snackbar('Error', response.toString());
       }
-
-      Get.back();
-      Get.snackbar(
-        "success title",
-        "profile updated successfully",
-        snackPosition: SnackPosition.BOTTOM,
-      );
     } catch (e) {
-      Get.snackbar(
-        "error_title".tr,
-        "failed_to_update_profile".tr,
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      Get.snackbar('Error', e.toString());
     } finally {
       isLoading.value = false;
     }
@@ -110,6 +103,9 @@ class ProfileController extends GetxController {
 
   @override
   void onClose() {
+    usernameCtrl.dispose();
+    emailCtrl.dispose();
+    phoneCtrl.dispose();
     super.onClose();
   }
 }

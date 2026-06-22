@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rawnes/modules/profile/profile_model.dart';
+import 'package:rawnes/core/services/auth_service.dart';
+import 'package:rawnes/core/services/storage_service.dart';
 
 class HomeController extends GetxController {
   final currentIndex = 0.obs;
@@ -8,34 +10,27 @@ class HomeController extends GetxController {
   final rxUser = Rxn<UserModel>();
   final isProfileLoading = false.obs;
 
+  final AuthService _authService = AuthService();
+
   @override
   void onInit() {
     super.onInit();
     isDarkMode.value = Get.isDarkMode;
-
     fetchUserProfile();
   }
 
   Future<void> fetchUserProfile() async {
     isProfileLoading.value = true;
     try {
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await _authService.getProfile();
 
-      final mockJsonResponse = {
-        "id": "usr_9920",
-        "name": "Sarah Jenkins",
-        "email": "s.jenkins@rawnews.com",
-        "is_member": true,
-        "avatar_url": null,
-      };
-
-      rxUser.value = UserModel.fromJson(mockJsonResponse);
+      if (response.containsKey('email')) {
+        rxUser.value = UserModel.fromJson(response);
+      } else {
+        Get.snackbar('Error', 'Failed to load profile');
+      }
     } catch (e) {
-      Get.snackbar(
-        "error_title".tr,
-        "failed_to_load_profile".tr,
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      Get.snackbar('Error', e.toString());
     } finally {
       isProfileLoading.value = false;
     }
@@ -57,10 +52,13 @@ class HomeController extends GetxController {
 
   Future<void> logout() async {
     try {
-      // await _localStorage.clearToken();
-
+      await _authService.logout();
+      await StorageService.clearTokens();
+    } catch (e) {
+      await StorageService.clearTokens();
+    } finally {
       rxUser.value = null;
       Get.offAllNamed('/login');
-    } catch (e) {}
+    }
   }
 }

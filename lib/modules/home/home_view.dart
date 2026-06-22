@@ -257,7 +257,7 @@ class HomeDrawer extends GetView<HomeController> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      user?.name ?? "Guest User",
+                      user?.username ?? "Guest User",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
