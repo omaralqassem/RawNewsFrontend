@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:rawnes/core/constants/app_colors.dart';
 import 'package:rawnes/core/utils/widgets.dart';
 import 'package:rawnes/modules/NewsFeed/news_feed_view.dart';
+import 'package:rawnes/modules/Preferences/preferencesView.dart';
 import 'package:rawnes/modules/bookmarks/bookmarks_view.dart';
 import 'package:rawnes/modules/search/search_view.dart';
 
@@ -28,7 +29,7 @@ class HomeView extends GetView<HomeController> {
       const FeedView(),
       const SearchView(),
       const BookmarksView(),
-      const _PlaceholderPage(title: "PREFERENCES"),
+      const PreferencesView(),
     ];
 
     final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
@@ -132,40 +133,6 @@ class HomeView extends GetView<HomeController> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _PlaceholderPage extends StatelessWidget {
-  final String title;
-
-  const _PlaceholderPage({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final textPrimary = isDark
-        ? AppColors.darkTextPrimary
-        : AppColors.lightTextPrimary;
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 4.0,
-              color: textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(width: 40, height: 2, color: AppColors.actionBlue),
-        ],
       ),
     );
   }

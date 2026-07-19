@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:rawnes/modules/Preferences/preferencesController.dart';
 import 'home_controller.dart';
 import 'package:rawnes/modules/NewsFeed/news_feed_controller.dart';
 import 'package:rawnes/modules/search/search_controller.dart';
@@ -11,5 +12,6 @@ class HomeBinding extends Bindings {
     Get.lazyPut<FeedController>(() => FeedController());
     Get.lazyPut<SearchController>(() => SearchController());
     Get.lazyPut<BookmarksController>(() => BookmarksController());
+    Get.lazyPut<PreferencesController>(() => PreferencesController());
   }
 }
