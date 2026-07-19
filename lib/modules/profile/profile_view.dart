@@ -49,7 +49,13 @@ class ProfileView extends GetView<ProfileController> {
         ),
       ),
       body: SafeArea(
-        child: Form(
+        child: Obx(() {
+    if (controller.isProfileLoading.value) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.actionBlue),
+      );
+    } 
+        return Form(
           key: controller.formKey,
           child: ListView(
             physics: const BouncingScrollPhysics(),
@@ -142,7 +148,7 @@ class ProfileView extends GetView<ProfileController> {
               UnderlineTextField(
                 hintText: "Full name",
                 icon: Icons.person_outline_rounded,
-                controller: controller.nameCtrl,
+                controller: controller.usernameCtrl,
                 textColor: textPrimary,
                 hintColor: textSecondary.withOpacity(0.6),
                 borderColor: borderColor,
@@ -244,8 +250,8 @@ class ProfileView extends GetView<ProfileController> {
               ),
             ],
           ),
-        ),
-      ),
-    );
+        );
+  }),
+  ));
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/services/auth_service.dart';
+import '../../../core/services/storage_service.dart';
 
 class LoginController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -9,23 +11,53 @@ class LoginController extends GetxController {
   final isPasswordHidden = true.obs;
   final isLoading = false.obs;
 
+  final AuthService _authService = AuthService();
+
   void togglePasswordVisibility() {
     isPasswordHidden.value = !isPasswordHidden.value;
   }
 
   Future<void> login() async {
-    if (!formKey.currentState!.validate()) return;
+  if (!formKey.currentState!.validate()) {
+    return;
+  }
 
-    isLoading.value = true;
-    try {
-      await Future.delayed(const Duration(seconds: 2));
+  isLoading.value = true;
+
+  try {
+    final response =
+        await _authService.login(
+      email: identifierCtrl.text.trim(),
+      password: passwordCtrl.text.trim(),
+    );
+
+    if (response.containsKey('access')) {
+      await StorageService.saveTokens(
+        access: response['access'],
+        refresh: response['refresh'],
+      );
+
+      Get.snackbar(
+        'Success',
+        'Login Successful',
+      );
 
       Get.offAllNamed('/home');
-    } catch (e) {
-    } finally {
-      isLoading.value = false;
+    } else {
+      Get.snackbar(
+        'Login Failed',
+        response.toString(),
+      );
     }
+  } catch (e) {
+    Get.snackbar(
+      'Error',
+      e.toString(),
+    );
+  } finally {
+    isLoading.value = false;
   }
+}
 
   void navigateToRegister() {
     Get.toNamed('/sign-up');
