@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
-import '../../../core/services/auth_service.dart';
+import 'package:rawnes/core/services/api_service.dart';
 import 'profile_model.dart';
 
 class ProfileController extends GetxController {
@@ -22,7 +22,7 @@ class ProfileController extends GetxController {
     "SCIENCE", "CULTURE", "SPORTS", "HEALTH",
   ];
 
-  final AuthService _authService = AuthService();
+  final ApiService _apiService = ApiService();
 
   @override
   void onInit() {
@@ -36,7 +36,7 @@ class ProfileController extends GetxController {
   Future<void> fetchProfile() async {
     try {
       isProfileLoading.value = true;
-      final response = await _authService.getProfile();
+      final response = await _apiService.getProfile();
 
       if (response.containsKey('email')) {
         final user = UserModel.fromJson(response);
@@ -81,7 +81,7 @@ class ProfileController extends GetxController {
 
     isLoading.value = true;
     try {
-      final response = await _authService.updateProfile({
+      final response = await _apiService.updateProfile({
         'username': usernameCtrl.text.trim(),
         'email': emailCtrl.text.trim(),
       });

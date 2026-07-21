@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rawnes/core/services/api_service.dart';
 import 'package:rawnes/modules/profile/profile_model.dart';
-import 'package:rawnes/core/services/auth_service.dart';
 import 'package:rawnes/core/services/storage_service.dart';
 
 class HomeController extends GetxController {
@@ -10,7 +10,7 @@ class HomeController extends GetxController {
   final rxUser = Rxn<UserModel>();
   final isProfileLoading = false.obs;
 
-  final AuthService _authService = AuthService();
+  final ApiService _apiService = ApiService();
 
   @override
   void onInit() {
@@ -22,7 +22,7 @@ class HomeController extends GetxController {
   Future<void> fetchUserProfile() async {
     isProfileLoading.value = true;
     try {
-      final response = await _authService.getProfile();
+      final response = await _apiService.getProfile();
 
       if (response.containsKey('email')) {
         rxUser.value = UserModel.fromJson(response);
@@ -52,7 +52,7 @@ class HomeController extends GetxController {
 
   Future<void> logout() async {
     try {
-      await _authService.logout();
+      await _apiService.logout();
       await StorageService.clearTokens();
     } catch (e) {
       await StorageService.clearTokens();

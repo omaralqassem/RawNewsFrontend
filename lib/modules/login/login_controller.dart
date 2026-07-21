@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../core/services/auth_service.dart';
+import 'package:rawnes/core/services/api_service.dart';
 import '../../../core/services/storage_service.dart';
 
 class LoginController extends GetxController {
@@ -11,7 +11,7 @@ class LoginController extends GetxController {
   final isPasswordHidden = true.obs;
   final isLoading = false.obs;
 
-  final AuthService _authService = AuthService();
+  final ApiService _apiService = ApiService();
 
   void togglePasswordVisibility() {
     isPasswordHidden.value = !isPasswordHidden.value;
@@ -26,7 +26,7 @@ class LoginController extends GetxController {
 
   try {
     final response =
-        await _authService.login(
+        await _apiService.login(
       email: identifierCtrl.text.trim(),
       password: passwordCtrl.text.trim(),
     );

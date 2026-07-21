@@ -77,7 +77,7 @@ class FeedView extends GetView<FeedController> {
                       );
                     }
 
-                    if (controller.latestNewsList.isEmpty) {
+                    if (controller.newsList.isEmpty){
                       return const SizedBox(
                         height: 200,
                         child: Center(child: Text("No articles available")),
@@ -87,17 +87,16 @@ class FeedView extends GetView<FeedController> {
                     return ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: controller.latestNewsList.length,
+                      itemCount: controller.newsList.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 16),
                       itemBuilder: (context, index) {
-                        final article = controller.latestNewsList[index];
-
+                        final article = controller.newsList[index];
                         return _buildStandardNewsCard(
                           context: context,
-                          sourceName: article['source'],
-                          timeAgo: article['timeAgo'],
-                          title: article['title'],
-                          description: article['desc'],
+                          sourceName: article.source ?? 'Unknown',
+                          timeAgo: article.publishedAt,
+                          title: article.title,
+                          description: article.description,
                           borderColor: borderColor,
                           textPrimary: textPrimary,
                           textSecondary: textSecondary,

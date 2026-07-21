@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../core/services/auth_service.dart';
+import 'package:rawnes/core/services/api_service.dart';
 
 class RegisterController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -15,7 +15,7 @@ class RegisterController extends GetxController {
   final isConfirmPasswordHidden = true.obs;
   final isLoading = false.obs;
 
-  final AuthService _authService = AuthService();
+  final ApiService _apiService = ApiService();
 
   void togglePasswordVisibility() {
     isPasswordHidden.value = !isPasswordHidden.value;
@@ -34,7 +34,7 @@ Future<void> register() async {
 
   try {
     final response =
-        await _authService.register(
+        await _apiService.register(
       username: nameCtrl.text.trim(),
       email: emailCtrl.text.trim(),
       password: passwordCtrl.text.trim(),
