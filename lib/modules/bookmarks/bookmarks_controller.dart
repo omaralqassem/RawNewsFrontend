@@ -1,9 +1,11 @@
 import 'package:get/get.dart';
+import 'package:rawnes/core/services/api_service.dart';
+import 'bookmarks_model.dart';
 
 class BookmarksController extends GetxController {
   final isLoading = false.obs;
-
-  final bookmarkedItems = <Map<String, dynamic>>[].obs;
+  final bookmarkedItems = <BookmarkModel>[].obs;
+  final ApiService _apiService = ApiService();
 
   @override
   void onInit() {
@@ -14,43 +16,55 @@ class BookmarksController extends GetxController {
   Future<void> fetchBookmarks() async {
     isLoading.value = true;
     try {
-      await Future.delayed(const Duration(milliseconds: 300));
+      final response = await _apiService.getFavorites();
 
-      bookmarkedItems.assignAll([
-        {
-          "id": "aether_probe_101",
-          "sources": 3,
-          "timeAgo": "2 Hours Ago",
-          "title":
-              "Global Space Alliance Launches Deep-Space Exploration Probe",
-          "desc":
-              "Analysis of telemetry readings. Covers perspectives celebrating historical scientific progress versus financial scrutiny regarding budget overruns.",
-          "consensus": "Balanced Consensus",
-          "consensusColor": "green",
-        },
-      ]);
+    print('=== BOOKMARKS DEBUG ===');
+    print('Response: $response');
+    print('Length: ${response.length}');
+    print('=======================');
+
+      bookmarkedItems.assignAll(
+        response.map((item) => BookmarkModel.fromJson(item)).toList(),
+      );
     } catch (e) {
-      Get.snackbar("Error", "Failed to load bookmarks");
+
+    print('=== BOOKMARKS ERROR ===');
+    print(e.toString());
+    print('=======================');
+
+      Get.snackbar('Error', 'Failed to load bookmarks');
     } finally {
       isLoading.value = false;
     }
   }
 
-  void removeBookmark(String id) {
-    bookmarkedItems.removeWhere((item) => item['id'] == id);
-    Get.snackbar(
-      "Removed",
-      "Item removed from your bookmarks",
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
+  Future<void> removeBookmark(int newsId) async {
+    try {
+      await _apiService.removeFavorite(newsId);
+      bookmarkedItems.removeWhere((item) => item.newsId == newsId);
+      Get.snackbar(
+        'Removed',
+        'Removed from bookmarks',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to remove bookmark');
+    }
   }
 
-  // Share item mock functionality
+  Future<void> toggleBookmark(int newsId) async {
+    try {
+      await _apiService.toggleFavorite(newsId);
+      fetchBookmarks();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to update bookmark');
+    }
+  }
+
   void shareItem(String title) {
     Get.snackbar(
-      "Share",
-      "Opening share sheet for: \"$title\"",
+      'Share',
+      'Sharing: "$title"',
       snackPosition: SnackPosition.BOTTOM,
     );
   }

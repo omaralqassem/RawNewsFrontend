@@ -44,22 +44,16 @@ class BookmarksView extends GetView<BookmarksController> {
           separatorBuilder: (_, __) => const SizedBox(height: 16),
           itemBuilder: (context, index) {
             final item = controller.bookmarkedItems[index];
-
-            Color consensusColor = AppColors.actionBlue;
-            if (item['consensusColor'] == 'green')
-              consensusColor = Colors.green;
-            if (item['consensusColor'] == 'red')
-              consensusColor = AppColors.errorRed;
-
             return _buildBookmarkedCard(
               context: context,
-              clusterId: item['id'],
-              sourceCount: item['sources'],
-              timeAgo: item['timeAgo'],
-              title: item['title'],
-              description: item['desc'],
-              consensusLabel: item['consensus'],
-              consensusColor: consensusColor,
+              newsId: item.newsId,   
+              clusterId: item.newsId.toString(),
+              sourceCount: 1,
+              timeAgo: item.publishedAt,
+              title: item.title,
+              description: item.description,
+              consensusLabel: 'SAVED',
+              consensusColor: AppColors.actionBlue,
               borderColor: borderColor,
               textPrimary: textPrimary,
               textSecondary: textSecondary,
@@ -99,6 +93,7 @@ class BookmarksView extends GetView<BookmarksController> {
 
   Widget _buildBookmarkedCard({
     required BuildContext context,
+    required int newsId, 
     required String clusterId,
     required int sourceCount,
     required String timeAgo,
@@ -217,8 +212,7 @@ class BookmarksView extends GetView<BookmarksController> {
                         color: AppColors.errorRed,
                         size: 18,
                       ),
-                      onPressed: () => controller.removeBookmark(clusterId),
-                    ),
+                      onPressed: () => controller.removeBookmark(newsId),                    ),
                   ],
                 ),
               ],

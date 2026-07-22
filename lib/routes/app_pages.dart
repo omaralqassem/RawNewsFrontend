@@ -12,6 +12,9 @@ import 'package:rawnes/modules/register/register_view.dart';
 import 'package:rawnes/modules/splash/splash_binding.dart';
 import 'package:rawnes/modules/splash/splash_view.dart';
 import 'package:rawnes/routes/app_routes.dart';
+import 'package:rawnes/modules/news_analysis/news_analysis_binding.dart';
+import 'package:rawnes/modules/news_analysis/news_analysis_view.dart';
+
 
 class AppPages {
   AppPages._();
@@ -50,5 +53,10 @@ class AppPages {
       page: () => const AboutView(),
       binding: AboutBinding(),
     ),
+    GetPage(
+    name: Routes.NEWS_DETAIL,
+    page: () => const NewsAnalysisView(),
+    binding: NewsAnalysisBinding(),
+  ),
   ];
 }

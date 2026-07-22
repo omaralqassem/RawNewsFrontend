@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rawnes/core/services/api_service.dart';
+import '../NewsFeed/news_model.dart';
 
 class SearchController extends GetxController {
   final searchQuery = "".obs;
   final isLoading = false.obs;
   late TextEditingController textController;
+  final ApiService _apiService = ApiService();
 
   final trendingKeywords = <String>[
     "Space Launch",
@@ -13,41 +16,7 @@ class SearchController extends GetxController {
     "Tech Regulations",
   ];
 
-  final List<Map<String, dynamic>> _analyzedClustersDataset = [
-    {
-      "id": "aether_probe_101",
-      "sources": 3,
-      "timeAgo": "2 Hours Ago",
-      "title": "Global Space Alliance Launches Deep-Space Exploration Probe",
-      "desc":
-          "Analysis of telemetry readings. Covers perspectives celebrating historical scientific progress versus financial scrutiny regarding budget overruns.",
-      "consensus": "Balanced Consensus",
-      "consensusColor": "green",
-    },
-    {
-      "id": "global_trade_202",
-      "sources": 5,
-      "timeAgo": "4 Hours Ago",
-      "title":
-          "New Maritime Shipping Regulations Take Effect Across Major Ports",
-      "desc":
-          "Synthesis of trade updates. Contrasts warnings from global logistics operators on inflation with regulatory arguments for long-term ecological balance.",
-      "consensus": "Slight Bias Detected",
-      "consensusColor": "blue",
-    },
-    {
-      "id": "tech_ai_303",
-      "sources": 4,
-      "timeAgo": "Yesterday",
-      "title": "New AI Architecture Released under Open-Source Licensing",
-      "desc":
-          "Compilation of developer praise on technical transparency versus administrative concerns about safety, data misuse, and synthetic text hazards.",
-      "consensus": "Highly Polarized",
-      "consensusColor": "red",
-    },
-  ];
-
-  final searchResults = <Map<String, dynamic>>[].obs;
+  final searchResults = <NewsModel>[].obs;
 
   @override
   void onInit() {
@@ -61,7 +30,7 @@ class SearchController extends GetxController {
     super.onClose();
   }
 
-  void performSearch(String query) {
+  Future<void> performSearch(String query) async {
     searchQuery.value = query;
     if (query.trim().isEmpty) {
       searchResults.clear();
@@ -69,22 +38,16 @@ class SearchController extends GetxController {
     }
 
     isLoading.value = true;
-
-    Future.delayed(const Duration(milliseconds: 300), () {
-      final lowercaseQuery = query.toLowerCase();
-      final filtered = _analyzedClustersDataset.where((cluster) {
-        final titleMatch = cluster['title'].toString().toLowerCase().contains(
-          lowercaseQuery,
-        );
-        final descMatch = cluster['desc'].toString().toLowerCase().contains(
-          lowercaseQuery,
-        );
-        return titleMatch || descMatch;
-      }).toList();
-
-      searchResults.assignAll(filtered);
+    try {
+      final response = await _apiService.getAllNews(search: query.trim());
+      searchResults.assignAll(
+        response.map((item) => NewsModel.fromJson(item)).toList(),
+      );
+    } catch (e) {
+      Get.snackbar('Error', 'Search failed');
+    } finally {
       isLoading.value = false;
-    });
+    }
   }
 
   void selectTrendingKeyword(String keyword) {

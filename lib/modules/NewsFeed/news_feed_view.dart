@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:rawnes/core/constants/app_colors.dart';
 import 'package:rawnes/modules/NewsFeed/news_feed_controller.dart';
 import 'package:rawnes/modules/home/home_controller.dart';
+import 'package:rawnes/routes/app_routes.dart';
 
 class FeedView extends GetView<FeedController> {
   const FeedView({super.key});
@@ -91,15 +92,22 @@ class FeedView extends GetView<FeedController> {
                       separatorBuilder: (_, __) => const SizedBox(height: 16),
                       itemBuilder: (context, index) {
                         final article = controller.newsList[index];
-                        return _buildStandardNewsCard(
-                          context: context,
-                          sourceName: article.source ?? 'Unknown',
-                          timeAgo: article.publishedAt,
-                          title: article.title,
-                          description: article.description,
-                          borderColor: borderColor,
-                          textPrimary: textPrimary,
-                          textSecondary: textSecondary,
+
+                        return GestureDetector(
+                          onTap: () => Get.toNamed(
+                            Routes.NEWS_DETAIL,
+                            arguments: article,  // ← مرر الـ NewsModel كاملاً
+                          ),
+                          child: _buildStandardNewsCard(
+                            context: context,
+                            sourceName: article.source ?? 'Unknown',
+                            timeAgo: article.publishedAt,
+                            title: article.title,
+                            description: article.description,
+                            borderColor: borderColor,
+                            textPrimary: textPrimary,
+                            textSecondary: textSecondary,
+                          ),
                         );
                       },
                     );

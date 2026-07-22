@@ -77,23 +77,17 @@ class SearchView extends GetView<local.SearchController> {
                   itemCount: results.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 16),
                   itemBuilder: (context, index) {
-                    final cluster = results[index];
-
-                    Color consensusColor = AppColors.actionBlue;
-                    if (cluster['consensusColor'] == 'green')
-                      consensusColor = Colors.green;
-                    if (cluster['consensusColor'] == 'red')
-                      consensusColor = AppColors.errorRed;
+                    final article = controller.searchResults[index];
 
                     return _buildAnalyzedResultCard(
                       context: context,
-                      clusterId: cluster['id'],
-                      sourceCount: cluster['sources'],
-                      timeAgo: cluster['timeAgo'],
-                      title: cluster['title'],
-                      description: cluster['desc'],
-                      consensusLabel: cluster['consensus'],
-                      consensusColor: consensusColor,
+                      clusterId: article.id.toString(),
+                      sourceCount: 1,
+                      timeAgo: article.publishedAt,
+                      title: article.title,
+                      description: article.description,
+                      consensusLabel: article.category ?? 'NEWS',
+                      consensusColor: AppColors.actionBlue,
                       borderColor: borderColor,
                       textPrimary: textPrimary,
                       textSecondary: textSecondary,

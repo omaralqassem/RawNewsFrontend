@@ -4,7 +4,6 @@ import 'package:rawnes/core/constants/api_constants.dart';
 import 'storage_service.dart';
 
 class ApiService {
-  // ← غيّر هاد حسب الـ IP تبعك
   static const String baseUrl = ApiConstants.baseUrl;
 
   // ============================================================
@@ -156,8 +155,19 @@ class ApiService {
       Uri.parse('$baseUrl/api/favorites/'),
       headers: headers,
     );
-    return jsonDecode(response.body);
+    
+    final decoded = jsonDecode(response.body);  
+    if (decoded is List) {
+    return decoded;
+  } else if (decoded is Map && decoded.containsKey('results')) {
+    return decoded['results'];
+  } else if (decoded is Map && decoded.containsKey('favorites')) {
+    return decoded['favorites'];
+  } else {
+    return [];
   }
+    
+    }
 
   /// POST /api/favorites/toggle/  — إضافة أو إزالة من المفضلة
   Future<Map<String, dynamic>> toggleFavorite(int newsId) async {
