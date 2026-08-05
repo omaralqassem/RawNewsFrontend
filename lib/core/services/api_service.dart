@@ -4,11 +4,10 @@ import 'package:rawnes/core/constants/api_constants.dart';
 import 'storage_service.dart';
 
 class ApiService {
-  static const String baseUrl = ApiConstants.baseUrl;
+  static const String baseUrl = ApiConstants.baseUrl; // Auth, Favorites, Notifications
+  static const String newsUrl = ApiConstants.newsUrl; // News, Feedback
 
-  // ============================================================
   // HELPERS
-  // ============================================================
 
   static Future<Map<String, String>> _authHeaders() async {
     final access = await StorageService.getAccessToken();
@@ -24,11 +23,8 @@ class ApiService {
     'Accept': 'application/json',
   };
 
-  // ============================================================
-  // AUTH  →  /api/auth/
-  // ============================================================
+  // Auth  -->  port 8000
 
-  /// POST /api/auth/register/
   Future<Map<String, dynamic>> register({
     required String username,
     required String email,
@@ -46,7 +42,6 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  /// POST /api/auth/login/
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -59,7 +54,6 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  /// POST /api/auth/logout/
   Future<Map<String, dynamic>> logout() async {
     final refresh = await StorageService.getRefreshToken();
     final headers = await _authHeaders();
@@ -72,7 +66,6 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  /// GET /api/auth/show_profile/
   Future<Map<String, dynamic>> getProfile() async {
     final headers = await _authHeaders();
     final response = await http.get(
@@ -82,9 +75,7 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  /// PATCH /api/auth/update_profile/
-  Future<Map<String, dynamic>> updateProfile(
-      Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async {
     final headers = await _authHeaders();
     final response = await http.patch(
       Uri.parse('$baseUrl/api/auth/update_profile/'),
@@ -94,82 +85,126 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  // ============================================================
-  // NEWS  →  /api/news/
-  // ============================================================
+  // News  -->  port 8002 (FastAPI)
 
-  /// GET /api/news/  — كل الأخبار (مع filters اختيارية)
-  /// [category] id الفئة   [source] id المصدر   [search] كلمة البحث
-  Future<List<dynamic>> getAllNews({
-    int? category,
-    int? source,
-    String? search,
-  }) async {
-    final queryParams = <String, String>{};
-    if (category != null) queryParams['category'] = category.toString();
-    if (source != null) queryParams['source'] = source.toString();
-    if (search != null && search.isNotEmpty) queryParams['search'] = search;
-
-    final uri = Uri.parse('$baseUrl/api/news/')
-        .replace(queryParameters: queryParams.isEmpty ? null : queryParams);
-
+  // GET /articles/feed
+  Future<List<dynamic>> getAllNews({int page = 1, int pageSize = 10}) async {
+    final uri = Uri.parse('$newsUrl/articles/feed').replace(
+      queryParameters: {
+        'page': page.toString(),
+        'page_size': pageSize.toString(),
+      },
+    );
     final response = await http.get(uri, headers: _publicHeaders);
-    return jsonDecode(response.body);
+    final decoded = jsonDecode(response.body);
+    if (decoded is Map && decoded.containsKey('articles')) {
+      return decoded['articles'];
+    }
+    return [];
   }
 
-  /// GET /api/news/<id>/  — خبر واحد
+  // GET /articles/search?q=كلمة
+  Future<List<dynamic>> searchNews(String query) async {
+    final response = await http.get(
+      Uri.parse('$newsUrl/articles/search?q=${Uri.encodeComponent(query)}'),
+      headers: _publicHeaders,
+    );
+    final decoded = jsonDecode(response.body);
+    if (decoded is Map && decoded.containsKey('articles')) {
+      return decoded['articles'];
+    }
+    return [];
+  }
+
+  // GET /articles/<id>
   Future<Map<String, dynamic>> getNewsById(int id) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/api/news/$id/'),
+      Uri.parse('$newsUrl/articles/$id'),
       headers: _publicHeaders,
     );
     return jsonDecode(response.body);
   }
 
-  /// GET /api/news/categories/
+  // GET /articles/<id>/sources
+  Future<Map<String, dynamic>> getNewsSources(int newsId) async {
+    final response = await http.get(
+      Uri.parse('$newsUrl/articles/$newsId/sources'),
+      headers: _publicHeaders,
+    );
+    return jsonDecode(response.body);
+  }
+
+  // GET /articles/<id>/related
+  Future<List<dynamic>> getRelatedNews(int newsId) async {
+    final response = await http.get(
+      Uri.parse('$newsUrl/articles/$newsId/related'),
+      headers: _publicHeaders,
+    );
+    final decoded = jsonDecode(response.body);
+    if (decoded is Map && decoded.containsKey('articles')) {
+      return decoded['articles'];
+    }
+    return [];
+  }
+
+  // GET /api/news/categories/
   Future<List<dynamic>> getCategories() async {
     final response = await http.get(
       Uri.parse('$baseUrl/api/news/categories/'),
       headers: _publicHeaders,
     );
-    return jsonDecode(response.body);
+    final decoded = jsonDecode(response.body);
+    if (decoded is List) return decoded;
+    return [];
   }
 
-  /// GET /api/news/sources/
-  Future<List<dynamic>> getSources() async {
+  // GET /api/news/?category=1
+  Future<List<dynamic>> getNewsByCategory(int categoryId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/api/news/sources/'),
+      Uri.parse('$newsUrl/api/news/?category=$categoryId'),
       headers: _publicHeaders,
     );
-    return jsonDecode(response.body);
+    final decoded = jsonDecode(response.body);
+    if (decoded is List) return decoded;
+    if (decoded is Map && decoded.containsKey('results')) {
+      return decoded['results'];
+    }
+    return [];
   }
 
-  // ============================================================
-  // FAVORITES  →  /api/favorites/
-  // ============================================================
+  // GET /api/news/?source=1
+  Future<List<dynamic>> getNewsBySource(int sourceId) async {
+    final response = await http.get(
+      Uri.parse('$newsUrl/api/news/?source=$sourceId'),
+      headers: _publicHeaders,
+    );
+    final decoded = jsonDecode(response.body);
+    if (decoded is List) return decoded;
+    if (decoded is Map && decoded.containsKey('results')) {
+      return decoded['results'];
+    }
+    return [];
+  }
 
-  /// GET /api/favorites/  — كل المفضلة
+  // Favorites  -->  port 8000
+
   Future<List<dynamic>> getFavorites() async {
     final headers = await _authHeaders();
     final response = await http.get(
       Uri.parse('$baseUrl/api/favorites/'),
       headers: headers,
     );
-    
-    final decoded = jsonDecode(response.body);  
-    if (decoded is List) {
-    return decoded;
-  } else if (decoded is Map && decoded.containsKey('results')) {
-    return decoded['results'];
-  } else if (decoded is Map && decoded.containsKey('favorites')) {
-    return decoded['favorites'];
-  } else {
+    final decoded = jsonDecode(response.body);
+    if (decoded is List) return decoded;
+    if (decoded is Map && decoded.containsKey('results')) {
+      return decoded['results'];
+    }
+    if (decoded is Map && decoded.containsKey('favorites')) {
+      return decoded['favorites'];
+    }
     return [];
   }
-    
-    }
 
-  /// POST /api/favorites/toggle/  — إضافة أو إزالة من المفضلة
   Future<Map<String, dynamic>> toggleFavorite(int newsId) async {
     final headers = await _authHeaders();
     final response = await http.post(
@@ -180,7 +215,6 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  /// DELETE /api/favorites/remove/<id>/  — إزالة خبر واحد
   Future<Map<String, dynamic>> removeFavorite(int newsId) async {
     final headers = await _authHeaders();
     final response = await http.delete(
@@ -190,7 +224,6 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  /// DELETE /api/favorites/clear/  — مسح كل المفضلة
   Future<Map<String, dynamic>> clearFavorites() async {
     final headers = await _authHeaders();
     final response = await http.delete(
@@ -200,11 +233,8 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  // ============================================================
-  // NOTIFICATIONS  →  /api/notifications/
-  // ============================================================
+  // Notifications  -->  port 8000
 
-  /// GET /api/notifications/preferences/
   Future<Map<String, dynamic>> getNotificationPreferences() async {
     final headers = await _authHeaders();
     final response = await http.get(
@@ -214,9 +244,9 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  /// PATCH /api/notifications/preferences/update/
   Future<Map<String, dynamic>> updateNotificationPreferences(
-      Map<String, dynamic> data) async {
+    Map<String, dynamic> data,
+  ) async {
     final headers = await _authHeaders();
     final response = await http.patch(
       Uri.parse('$baseUrl/api/notifications/preferences/update/'),
@@ -226,27 +256,39 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  // ============================================================
-  // FEEDBACK  →  /api/feedback/  (port 8002)
-  // ============================================================
+  // Feedback  -->  port 8002
 
-  static const String _feedbackUrl = 'http://192.168.1.7:8002';
-
-  /// POST /api/feedback/article/
-  Future<Map<String, dynamic>> submitFeedback(
-      Map<String, dynamic> data) async {
+  /// POST /article-feedback
+  Future<Map<String, dynamic>> submitFeedback({
+    required int articleId,
+    required bool propagandaCorrect,
+    String? correctedPropaganda,
+    required bool statementCorrect,
+    String? correctedStatement,
+    required bool attributionCorrect,
+    String? correctedAttribution,
+    String? notes,
+  }) async {
     final response = await http.post(
-      Uri.parse('$_feedbackUrl/api/feedback/article/'),
+      Uri.parse('$newsUrl/article-feedback'),
       headers: _publicHeaders,
-      body: jsonEncode(data),
+      body: jsonEncode({
+        'article_id': articleId,
+        'propaganda_correct': propagandaCorrect,
+        'corrected_propaganda': correctedPropaganda,
+        'statement_correct': statementCorrect,
+        'corrected_statement': correctedStatement,
+        'attribution_correct': attributionCorrect,
+        'corrected_attribution': correctedAttribution,
+        'notes': notes,
+      }),
     );
     return jsonDecode(response.body);
   }
 
-  /// GET /api/feedback/article/<id>/feedback/
   Future<Map<String, dynamic>> getFeedbackDetails(int articleId) async {
     final response = await http.get(
-      Uri.parse('$_feedbackUrl/api/feedback/article/$articleId/feedback/'),
+      Uri.parse('$newsUrl/api/feedback/article/$articleId/feedback/'),
       headers: _publicHeaders,
     );
     return jsonDecode(response.body);

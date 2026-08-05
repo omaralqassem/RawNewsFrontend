@@ -96,14 +96,14 @@ class FeedView extends GetView<FeedController> {
                         return GestureDetector(
                           onTap: () => Get.toNamed(
                             Routes.NEWS_DETAIL,
-                            arguments: article,  // ← مرر الـ NewsModel كاملاً
+                            arguments: article, 
                           ),
                           child: _buildStandardNewsCard(
                             context: context,
-                            sourceName: article.source ?? 'Unknown',
+                            sourceName: article.sourceName,
                             timeAgo: article.publishedAt,
                             title: article.title,
-                            description: article.description,
+                            description: article.content ?? '',
                             borderColor: borderColor,
                             textPrimary: textPrimary,
                             textSecondary: textSecondary,

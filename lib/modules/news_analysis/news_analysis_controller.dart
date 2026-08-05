@@ -16,10 +16,10 @@ class NewsAnalysisController extends GetxController {
     super.onInit();
     final args = Get.arguments;
     if (args is NewsModel) {
-      // جاي من الـ NewsFeed
+      // جاي من ال NewsFeed
       _loadFromNewsModel(args);
     } else if (args is String) {
-      // جاي من الـ Bookmarks
+      // جاي من ال Bookmarks
       fetchClusterAnalysis(args);
     } else {
       fetchClusterAnalysis('default_id');
@@ -27,29 +27,29 @@ class NewsAnalysisController extends GetxController {
   }
 
   void _loadFromNewsModel(NewsModel news) {
-    isLoading.value = true;
-    rxCluster.value = NewsClusterModel(
-      id: news.id.toString(),
-      title: news.title,
-      category: news.category ?? 'NEWS',
-      publishedAt: DateTime.tryParse(news.publishedAt) ?? DateTime.now(),
-      smartSummary: news.description,
-      neutralConsensus: news.content,
-      articles: [
-        SourceArticleModel(
-          id: '1',
-          sourceName: news.source ?? 'Unknown Source',
-          author: 'Unknown',
-          originalUrl: news.url ?? '',
-          fullText: news.content,
-          biasScore: 0.0,
-          biasLabel: 'Neutral',
-          comparativeExcerpt: news.description,
-        ),
-      ],
-    );
-    isLoading.value = false;
-  }
+  isLoading.value = true;
+  rxCluster.value = NewsClusterModel(
+    id: news.id.toString(),
+    title: news.title,
+    category: 'NEWS',
+    publishedAt: DateTime.tryParse(news.publishedAt) ?? DateTime.now(),
+    smartSummary: news.content ?? news.title,
+    neutralConsensus: news.content ?? '',
+    articles: [
+      SourceArticleModel(
+        id: '1',
+        sourceName: news.sourceName, 
+        author: 'Unknown',
+        originalUrl: news.url ?? '',
+        fullText: news.content ?? '',
+        biasScore: 0.0,
+        biasLabel: 'Neutral',
+        comparativeExcerpt: news.content ?? '',
+      ),
+    ],
+  );
+  isLoading.value = false;
+}
 
   Future<void> fetchClusterAnalysis(String id) async {
     isLoading.value = true;

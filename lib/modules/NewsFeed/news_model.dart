@@ -1,37 +1,37 @@
 class NewsModel {
   final int id;
   final String title;
-  final String description;
-  final String content;
-  final String? image;
-  final String? url;
-  final String? source;
-  final String? category;
+  final String? content;
+  final String sourceName;
   final String publishedAt;
+  final String? url;
+  final int? clusterId;
+  final double? reliabilityScore;
+  final double? neutralityScore;
 
   NewsModel({
     required this.id,
     required this.title,
-    required this.description,
-    required this.content,
-    this.image,
-    this.url,
-    this.source,
-    this.category,
+    this.content,
+    required this.sourceName,
     required this.publishedAt,
+    this.url,
+    this.clusterId,
+    this.reliabilityScore,
+    this.neutralityScore,
   });
 
   factory NewsModel.fromJson(Map<String, dynamic> json) {
     return NewsModel(
       id: json['id'] ?? 0,
       title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      content: json['content'] ?? '',
-      image: json['image'],
-      url: json['url'],
-      source: json['source']?.toString(),
-      category: json['category']?.toString(),
+      content: json['content'],
+      sourceName: json['source_name'] ?? '',
       publishedAt: json['published_at'] ?? '',
+      url: json['url'],
+      clusterId: json['cluster_id'],
+      reliabilityScore: json['reliability_score']?.toDouble(),
+      neutralityScore: json['neutrality_score']?.toDouble(),
     );
   }
 }

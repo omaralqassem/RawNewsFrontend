@@ -39,7 +39,7 @@ class SearchController extends GetxController {
 
     isLoading.value = true;
     try {
-      final response = await _apiService.getAllNews(search: query.trim());
+      final response = await _apiService.searchNews(query.trim());
       searchResults.assignAll(
         response.map((item) => NewsModel.fromJson(item)).toList(),
       );
