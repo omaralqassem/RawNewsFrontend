@@ -14,7 +14,7 @@ class SearchController extends GetxController {
   var selectedTimeWindow = '7d'.obs;
   var searchResults = <ClusterModel>[].obs;
 
-  Timer? _debounce; // Timer variable for debouncing
+  Timer? _debounce;
 
   final List<String> trendingKeywords = [
     "المجلس العربي",
@@ -34,7 +34,6 @@ class SearchController extends GetxController {
   void setTimeWindow(String value) {
     selectedTimeWindow.value = value;
     if (searchQuery.value.trim().isNotEmpty) {
-      // Force immediate search when clicking a chip
       _executeSearch(searchQuery.value);
     }
   }
@@ -43,26 +42,22 @@ class SearchController extends GetxController {
     textController.clear();
     searchQuery.value = '';
     searchResults.clear();
-    _debounce?.cancel(); // Cancel any pending searches
+    _debounce?.cancel();
   }
 
   void selectTrendingKeyword(String keyword) {
     textController.text = keyword;
-    // Force immediate search when clicking a trending keyword
     _executeSearch(keyword);
   }
 
-  // This is the method triggered by TextField onChange
   void performSearch(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-    // Wait 1.5 seconds before calling the backend
     _debounce = Timer(const Duration(milliseconds: 1500), () {
       _executeSearch(query);
     });
   }
 
-  // The actual backend call
   Future<void> _executeSearch(String query) async {
     searchQuery.value = query;
     if (query.isEmpty) {
