@@ -1,62 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rawnes/core/services/api_service.dart';
-import '../NewsFeed/news_model.dart';
+import 'package:rawnes/modules/NewsFeed/news_model.dart';
+import 'dart:async'; // Required for Timer
 
 class SearchController extends GetxController {
-  final searchQuery = "".obs;
-  final isLoading = false.obs;
-  late TextEditingController textController;
-  final ApiService _apiService = ApiService();
+  final ApiService apiService = ApiService();
+  final textController = TextEditingController();
 
-  final trendingKeywords = <String>[
-    "Space Launch",
-    "Maritime Policy",
-    "Open Weights",
-    "Tech Regulations",
+  var searchQuery = ''.obs;
+  var isLoading = false.obs;
+
+  var selectedTimeWindow = '7d'.obs;
+  var searchResults = <ClusterModel>[].obs;
+
+  Timer? _debounce; // Timer variable for debouncing
+
+  final List<String> trendingKeywords = [
+    "المجلس العربي",
+    "غزة",
+    "سوريا",
+    "الذكاء الاصطناعي",
   ];
 
-  final searchResults = <NewsModel>[].obs;
+  final List<Map<String, String>> timeWindows = [
+    {'label': '1 Hour', 'value': '1h'},
+    {'label': '1 Day', 'value': '1d'},
+    {'label': '3 Days', 'value': '3d'},
+    {'label': '7 Days', 'value': '7d'},
+    {'label': '30 Days', 'value': '30d'},
+  ];
 
-  @override
-  void onInit() {
-    super.onInit();
-    textController = TextEditingController();
+  void setTimeWindow(String value) {
+    selectedTimeWindow.value = value;
+    if (searchQuery.value.trim().isNotEmpty) {
+      // Force immediate search when clicking a chip
+      _executeSearch(searchQuery.value);
+    }
   }
 
-  @override
-  void onClose() {
-    textController.dispose();
-    super.onClose();
+  void clearSearch() {
+    textController.clear();
+    searchQuery.value = '';
+    searchResults.clear();
+    _debounce?.cancel(); // Cancel any pending searches
   }
 
-  Future<void> performSearch(String query) async {
+  void selectTrendingKeyword(String keyword) {
+    textController.text = keyword;
+    // Force immediate search when clicking a trending keyword
+    _executeSearch(keyword);
+  }
+
+  // This is the method triggered by TextField onChange
+  void performSearch(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    // Wait 1.5 seconds before calling the backend
+    _debounce = Timer(const Duration(milliseconds: 1500), () {
+      _executeSearch(query);
+    });
+  }
+
+  // The actual backend call
+  Future<void> _executeSearch(String query) async {
     searchQuery.value = query;
-    if (query.trim().isEmpty) {
+    if (query.isEmpty) {
       searchResults.clear();
       return;
     }
 
     isLoading.value = true;
     try {
-      final response = await _apiService.searchNews(query.trim());
-      searchResults.assignAll(
-        response.map((item) => NewsModel.fromJson(item)).toList(),
+      final results = await apiService.searchNews(
+        query,
+        timeWindow: selectedTimeWindow.value,
       );
+      searchResults.assignAll(results);
     } catch (e) {
-      Get.snackbar('Error', 'Search failed');
+      print("Search Error: $e");
     } finally {
       isLoading.value = false;
     }
   }
 
-  void selectTrendingKeyword(String keyword) {
-    textController.text = keyword;
-    performSearch(keyword);
-  }
-
-  void clearSearch() {
-    textController.clear();
-    performSearch("");
+  @override
+  void onClose() {
+    _debounce?.cancel();
+    textController.dispose();
+    super.onClose();
   }
 }

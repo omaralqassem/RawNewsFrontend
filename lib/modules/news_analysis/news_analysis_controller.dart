@@ -1,11 +1,9 @@
 import 'package:get/get.dart';
-import 'package:rawnes/modules/NewsFeed/news_model.dart';
-import 'news_analysis_model.dart';
 import 'package:rawnes/core/services/api_service.dart';
-
+import 'package:rawnes/modules/NewsFeed/news_model.dart';
 
 class NewsAnalysisController extends GetxController {
-  final rxCluster = Rxn<NewsClusterModel>();
+  final rxCluster = Rxn<ClusterModel>();
   final isLoading = false.obs;
   final isSaved = false.obs;
   final summaryRating = 0.obs;
@@ -15,110 +13,57 @@ class NewsAnalysisController extends GetxController {
   void onInit() {
     super.onInit();
     final args = Get.arguments;
-    if (args is NewsModel) {
-      // جاي من ال NewsFeed
-      _loadFromNewsModel(args);
-    } else if (args is String) {
-      // جاي من ال Bookmarks
-      fetchClusterAnalysis(args);
-    } else {
-      fetchClusterAnalysis('default_id');
+
+    if (args is ClusterModel) {
+      rxCluster.value = args;
+    } else if (args is NewsModel) {
+      _loadFromSingleNewsModel(args);
     }
   }
 
-  void _loadFromNewsModel(NewsModel news) {
-  isLoading.value = true;
-  rxCluster.value = NewsClusterModel(
-    id: news.id.toString(),
-    title: news.title,
-    category: 'NEWS',
-    publishedAt: DateTime.tryParse(news.publishedAt) ?? DateTime.now(),
-    smartSummary: news.content ?? news.title,
-    neutralConsensus: news.content ?? '',
-    articles: [
-      SourceArticleModel(
-        id: '1',
-        sourceName: news.sourceName, 
-        author: 'Unknown',
-        originalUrl: news.url ?? '',
-        fullText: news.content ?? '',
-        biasScore: 0.0,
-        biasLabel: 'Neutral',
-        comparativeExcerpt: news.content ?? '',
-      ),
-    ],
-  );
-  isLoading.value = false;
-}
+  void _loadFromSingleNewsModel(NewsModel news) {
+    rxCluster.value = ClusterModel(
+      clusterId: news.clusterId ?? news.id,
+      summary: news.content,
+      articles: [news],
+    );
+  }
 
-  Future<void> fetchClusterAnalysis(String id) async {
-    isLoading.value = true;
+  Future<void> toggleSave() async {
     try {
-      await Future.delayed(const Duration(milliseconds: 600));
-      // Mock data مؤقت
-      rxCluster.value = NewsClusterModel(
-        id: id,
-        title: "Global Space Coalition Launches Deep-Space Exploration Probe",
-        category: "AEROSPACE",
-        publishedAt: DateTime.now().subtract(const Duration(hours: 4)),
-        smartSummary: "The International Space Alliance has successfully sent the 'Aether-1' explorer into orbit.",
-        neutralConsensus: "The 'Aether-1' deep-space probe has reached its target orbital trajectory.",
-        articles: [
-          SourceArticleModel(
-            id: "art_1",
-            sourceName: "Global Tech Sentinel",
-            author: "Marcus Vance",
-            originalUrl: "https://example.com/sentinel",
-            fullText: "In a stunning display of human ingenuity, the Aether-1 probe took flight today.",
-            biasScore: -0.6,
-            biasLabel: "Leaning Positive / Progressive",
-            comparativeExcerpt: "A stunning display of human ingenuity.",
-          ),
-          SourceArticleModel(
-            id: "art_2",
-            sourceName: "Financial Capital Report",
-            author: "Helena Rostova",
-            originalUrl: "https://example.com/capital",
-            fullText: "The deeply delayed Aether-1 orbital mission finally launched.",
-            biasScore: 0.8,
-            biasLabel: "Leaning Critical / Financial Focus",
-            comparativeExcerpt: "Marred by bureaucratic stagnation.",
-          ),
-        ],
+      final cluster = rxCluster.value;
+      if (cluster == null || cluster.articles.isEmpty) return;
+
+      final newsId = cluster.articles.first.id;
+
+      await _apiService.toggleFavorite(newsId);
+      isSaved.value = !isSaved.value;
+
+      Get.snackbar(
+        isSaved.value ? 'Saved' : 'Removed',
+        isSaved.value ? 'Added to bookmarks' : 'Removed from bookmarks',
+        snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
-      Get.snackbar("Error", "Could not fetch analysis");
-    } finally {
-      isLoading.value = false;
+      isSaved.value = !isSaved.value;
     }
   }
 
-  //void toggleSave() => isSaved.value = !isSaved.value;
-  Future<void> toggleSave() async {
-  try {
+  Future<void> submitRating(int value) async {
+    summaryRating.value = value;
     final cluster = rxCluster.value;
-    if (cluster == null) return;
 
-    final newsId = int.tryParse(cluster.id);
-    if (newsId == null) return;
-
-    await _apiService.toggleFavorite(newsId);
-    isSaved.value = !isSaved.value;
-
-    Get.snackbar(
-      isSaved.value ? 'Saved ' : 'Removed',
-      isSaved.value ? 'Added to bookmarks' : 'Removed from bookmarks',
-      snackPosition: SnackPosition.BOTTOM,
-    );
-  } catch (e) {
-    // لو قاعدة البيانات فاضية أو في خطأ
-    isSaved.value = !isSaved.value;
-    Get.snackbar(
-      isSaved.value ? 'Saved ' : 'Removed',
-      isSaved.value ? 'Added to bookmarks' : 'Removed from bookmarks',
-      snackPosition: SnackPosition.BOTTOM,
-    );
+    if (cluster != null && cluster.articles.isNotEmpty) {
+      try {
+        await _apiService.submitSummaryFeedback(
+          clusterId: cluster.articles.first.id,
+          userRating: value,
+          generatedSummary: cluster.summary,
+        );
+        Get.snackbar("Feedback Sent", "Thank you for helping improve the AI.");
+      } catch (e) {
+        print("Feedback error: $e");
+      }
+    }
   }
-}
-  void submitRating(int value) => summaryRating.value = value;
 }

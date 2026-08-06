@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rawnes/core/constants/app_colors.dart';
+import 'package:rawnes/modules/NewsFeed/news_model.dart';
 import 'news_analysis_controller.dart';
-import 'news_analysis_model.dart';
 
 class NewsAnalysisView extends GetView<NewsAnalysisController> {
   const NewsAnalysisView({super.key});
@@ -24,7 +24,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          "ANALYSIS",
+          "AI ANALYSIS",
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w900,
@@ -58,7 +58,9 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
         ),
       ),
       body: Obx(() {
-        if (controller.isLoading.value) {
+        final cluster = controller.rxCluster.value;
+
+        if (controller.isLoading.value || cluster == null) {
           return const Center(
             child: CircularProgressIndicator(
               color: AppColors.actionBlue,
@@ -67,10 +69,21 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
           );
         }
 
-        final cluster = controller.rxCluster.value;
-        if (cluster == null) {
-          return const Center(child: Text("No analysis available"));
-        }
+        final mainArticle = cluster.articles.isNotEmpty
+            ? cluster.articles.first
+            : null;
+        if (mainArticle == null)
+          return const Center(child: Text("No data available"));
+
+        String timeAgo = "Recently";
+        try {
+          final dt = DateTime.parse(mainArticle.publishedAt);
+          final diff = DateTime.now().difference(dt);
+          if (diff.inHours > 0)
+            timeAgo = "${diff.inHours} Hours Ago";
+          else if (diff.inMinutes > 0)
+            timeAgo = "${diff.inMinutes} Minutes Ago";
+        } catch (_) {}
 
         return SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -91,7 +104,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      cluster.category,
+                      "CLUSTER #${cluster.clusterId}",
                       style: const TextStyle(
                         color: AppColors.actionBlue,
                         fontSize: 9,
@@ -101,7 +114,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                     ),
                   ),
                   Text(
-                    "4 Hours Ago",
+                    timeAgo,
                     style: TextStyle(
                       color: textSecondary,
                       fontSize: 11,
@@ -113,7 +126,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
               const SizedBox(height: 16),
 
               Text(
-                cluster.title,
+                mainArticle.title,
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
@@ -124,7 +137,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
               ),
               const SizedBox(height: 24),
 
-              _buildSectionHeader("SMART SUMMARY", textPrimary),
+              _buildSectionHeader("AI SMART SUMMARY", textPrimary),
               Card(
                 margin: EdgeInsets.zero,
                 child: Padding(
@@ -133,7 +146,8 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        cluster.smartSummary,
+                        cluster.summary ??
+                            "AI is gathering consensus data for this topic...",
                         style: TextStyle(
                           fontSize: 14,
                           color: textPrimary,
@@ -192,26 +206,10 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
               ),
               const SizedBox(height: 24),
 
-              _buildSectionHeader("NEUTRAL OUTLINE", textPrimary),
-              Card(
-                margin: EdgeInsets.zero,
-                color: AppColors.actionBlue.withOpacity(0.06),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Text(
-                    cluster.neutralConsensus,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: textPrimary,
-                      height: 1.6,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+              _buildSectionHeader(
+                "PUBLISHERS & BIAS METRICS (${cluster.articles.length})",
+                textPrimary,
               ),
-              const SizedBox(height: 24),
-
-              _buildSectionHeader("PUBLISHERS & BIAS METRICS", textPrimary),
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -257,12 +255,23 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
   }
 
   Widget _buildSourceCard(
-    SourceArticleModel article,
+    NewsModel article,
     ThemeData theme,
     Color textPrimary,
     Color textSecondary,
     Color borderColor,
   ) {
+    final reliabilityPercent = ((article.reliabilityScore ?? 0) * 100).toInt();
+    final neutralityPercent = ((article.neutralityScore ?? 0) * 100).toInt();
+
+    final isNeutral =
+        (article.propagandaLabel ?? 'neutral').toLowerCase() == 'neutral';
+    final propColor = isNeutral ? Colors.green : AppColors.errorRed;
+
+    final propLabelText = (article.propagandaLabel ?? 'neutral')
+        .replaceAll('_', ' ')
+        .toUpperCase();
+
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -281,88 +290,121 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                     color: textPrimary,
                   ),
                 ),
-                Text(
-                  article.biasLabel,
-                  style: const TextStyle(
-                    color: AppColors.actionBlue,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
+
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: propColor.withOpacity(0.1),
+                    border: Border.all(color: propColor.withOpacity(0.3)),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    propLabelText,
+                    style: TextStyle(
+                      color: propColor,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
+
             Text(
-              article.fullText,
-              style: TextStyle(fontSize: 13, color: textSecondary, height: 1.5),
+              article.title,
+              style: TextStyle(
+                fontSize: 13,
+                color: textSecondary,
+                height: 1.5,
+                fontWeight: FontWeight.w600,
+              ),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Left leaning",
-                      style: TextStyle(
-                        color: textSecondary.withOpacity(0.6),
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.scaffoldBackgroundColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.verified_user_outlined,
+                        size: 14,
+                        color: AppColors.actionBlue,
                       ),
-                    ),
-                    Text(
-                      "Neutral",
-                      style: TextStyle(
-                        color: textSecondary.withOpacity(0.6),
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      "Right leaning",
-                      style: TextStyle(
-                        color: textSecondary.withOpacity(0.6),
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Stack(
-                  children: [
-                    Container(
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: borderColor,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment(article.biasScore, 0),
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        transform: Matrix4.translationValues(0, -3, 0),
-                        decoration: const BoxDecoration(
-                          color: AppColors.actionBlue,
-                          shape: BoxShape.circle,
+                      const SizedBox(width: 6),
+                      Text(
+                        "Reliability: $reliabilityPercent%",
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: textPrimary,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.balance_rounded,
+                        size: 14,
+                        color: AppColors.actionBlue,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        "Neutrality: $neutralityPercent%",
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            Row(
+              children: [
+                Icon(
+                  Icons.record_voice_over_outlined,
+                  size: 14,
+                  color: textSecondary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  "Statement Type: ${(article.statementType ?? 'REPORTING').toUpperCase()}",
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: textSecondary,
+                  ),
                 ),
               ],
             ),
+
             const SizedBox(height: 14),
             Divider(color: borderColor, height: 1),
             const SizedBox(height: 8),
+
             GestureDetector(
-              onTap: () {},
+              onTap: () {
+                // TODO: Open URL
+              },
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [

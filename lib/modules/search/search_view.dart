@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rawnes/core/constants/app_colors.dart';
+import 'package:rawnes/modules/NewsFeed/news_model.dart';
 import 'search_controller.dart' as local;
 import '../news_analysis/news_analysis_view.dart';
 import '../news_analysis/news_analysis_controller.dart';
@@ -38,6 +39,48 @@ class SearchView extends GetView<local.SearchController> {
               ),
             ),
 
+            Obx(
+              () => SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 8.0,
+                ),
+                child: Row(
+                  children: controller.timeWindows.map((tw) {
+                    final isSelected =
+                        controller.selectedTimeWindow.value == tw['value'];
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: ChoiceChip(
+                        label: Text(tw['label']!),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) controller.setTimeWindow(tw['value']!);
+                        },
+                        selectedColor: AppColors.actionBlue.withOpacity(0.15),
+                        backgroundColor: theme.cardColor,
+                        labelStyle: TextStyle(
+                          color: isSelected
+                              ? AppColors.actionBlue
+                              : textSecondary,
+                          fontSize: 12,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                        side: BorderSide(
+                          color: isSelected
+                              ? AppColors.actionBlue
+                              : borderColor,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+
             Expanded(
               child: Obx(() {
                 final query = controller.searchQuery.value;
@@ -45,9 +88,16 @@ class SearchView extends GetView<local.SearchController> {
 
                 if (controller.isLoading.value) {
                   return const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.actionBlue,
-                      strokeWidth: 1.5,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(color: AppColors.actionBlue),
+                        SizedBox(height: 16),
+                        Text(
+                          "AI is gathering and analyzing sources...",
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ],
                     ),
                   );
                 }
@@ -77,16 +127,22 @@ class SearchView extends GetView<local.SearchController> {
                   itemCount: results.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 16),
                   itemBuilder: (context, index) {
-                    final article = controller.searchResults[index];
+                    final cluster = results[index];
+                    final mainArticle = cluster.articles.isNotEmpty
+                        ? cluster.articles.first
+                        : null;
+                    if (mainArticle == null) return const SizedBox.shrink();
 
                     return _buildAnalyzedResultCard(
                       context: context,
-                      clusterId: article.id.toString(),
-                      sourceCount: 1,
-                      timeAgo: article.publishedAt,
-                      title: article.title,
-                      description: article.content ?? '',
-                      consensusLabel: article.sourceName,
+                      cluster: cluster,
+                      sourceCount: cluster.articles.length,
+                      timeAgo: mainArticle.publishedAt,
+                      title: mainArticle.title,
+                      description:
+                          cluster.summary ?? "AI gathering consensus data...",
+                      consensusLabel:
+                          "AI CLUSTER • ${cluster.articles.length} SOURCES",
                       consensusColor: AppColors.actionBlue,
                       borderColor: borderColor,
                       textPrimary: textPrimary,
@@ -258,7 +314,7 @@ class SearchView extends GetView<local.SearchController> {
 
   Widget _buildAnalyzedResultCard({
     required BuildContext context,
-    required String clusterId,
+    required ClusterModel cluster,
     required int sourceCount,
     required String timeAgo,
     required String title,
@@ -278,7 +334,7 @@ class SearchView extends GetView<local.SearchController> {
           binding: BindingsBuilder(() {
             Get.lazyPut(() => NewsAnalysisController());
           }),
-          arguments: clusterId,
+          arguments: cluster,
         );
       },
       child: Container(

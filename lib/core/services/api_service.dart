@@ -1,13 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:rawnes/core/constants/api_constants.dart';
+import 'package:rawnes/modules/NewsFeed/news_model.dart';
 import 'storage_service.dart';
 
 class ApiService {
-  static const String baseUrl = ApiConstants.baseUrl; // Auth, Favorites, Notifications
-  static const String newsUrl = ApiConstants.newsUrl; // News, Feedback
-
-  // HELPERS
+  static const String baseUrl = ApiConstants.baseUrl;
+  static const String newsUrl = ApiConstants.newsUrl;
 
   static Future<Map<String, String>> _authHeaders() async {
     final access = await StorageService.getAccessToken();
@@ -22,8 +22,6 @@ class ApiService {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   };
-
-  // Auth  -->  port 8000
 
   Future<Map<String, dynamic>> register({
     required String username,
@@ -85,69 +83,156 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  // News  -->  port 8002 (FastAPI)
-
-  // GET /articles/feed
   Future<List<dynamic>> getAllNews({int page = 1, int pageSize = 10}) async {
-    final uri = Uri.parse('$newsUrl/articles/feed').replace(
-      queryParameters: {
-        'page': page.toString(),
-        'page_size': pageSize.toString(),
-      },
-    );
-    final response = await http.get(uri, headers: _publicHeaders);
-    final decoded = jsonDecode(response.body);
-    if (decoded is Map && decoded.containsKey('articles')) {
-      return decoded['articles'];
+    try {
+      final uri = Uri.parse('$newsUrl/articles/feed').replace(
+        queryParameters: {
+          'page': page.toString(),
+          'page_size': pageSize.toString(),
+        },
+      );
+
+      final response = await http.get(uri, headers: _publicHeaders);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded is Map && decoded.containsKey('articles')) {
+          return decoded['articles'];
+        }
+      } else {
+        print("FastAPI Feed Error: ${response.statusCode} - ${response.body}");
+      }
+    } catch (e) {
+      print("Flutter API Error (Feed): $e");
     }
     return [];
   }
 
-  // GET /articles/search?q=كلمة
-  Future<List<dynamic>> searchNews(String query) async {
-    final response = await http.get(
-      Uri.parse('$newsUrl/articles/search?q=${Uri.encodeComponent(query)}'),
+  Future<List<ClusterModel>> searchNews(
+    String query, {
+    String timeWindow = '7d',
+  }) async {
+    try {
+      final headers = await _authHeaders();
+      final uri = Uri.parse(
+        '$baseUrl/api/news/search/',
+      ).replace(queryParameters: {'q': query, 'time_window': timeWindow});
+
+      print("Asking AI to search: $uri");
+
+      final response = await http.get(uri, headers: headers);
+
+      print("Backend responded with status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is! Map<String, dynamic>) return [];
+
+        if (decoded.containsKey('clusters') && decoded['clusters'] is List) {
+          print("Found AI Clusters in JSON!");
+          final List dynamicClusters = decoded['clusters'];
+          final List<ClusterModel> parsedClusters = [];
+
+          for (var c in dynamicClusters) {
+            try {
+              parsedClusters.add(
+                ClusterModel.fromJson(c as Map<String, dynamic>),
+              );
+            } catch (e) {
+              print(" ERROR PARSING CLUSTER: $e");
+            }
+          }
+          return parsedClusters;
+        } else if (decoded.containsKey('results') &&
+            decoded['results'] is List) {
+          print("Backend used old format. Auto-converting to UI Clusters...");
+          final List dynamicArticles = decoded['results'];
+          final List<ClusterModel> mockClusters = [];
+
+          for (int i = 0; i < dynamicArticles.length; i++) {
+            try {
+              final artMap = dynamicArticles[i] as Map<String, dynamic>;
+              artMap['id'] = artMap['id'] ?? i + 1;
+              artMap['source_name'] =
+                  artMap['source'] ?? artMap['source_name'] ?? 'Web Source';
+
+              final article = NewsModel.fromJson(artMap);
+
+              mockClusters.add(
+                ClusterModel(
+                  clusterId: i + 1000,
+                  summary:
+                      "AI Summary pending backend update. Showing raw article.",
+                  articles: [article],
+                ),
+              );
+            } catch (e) {
+              print(" ERROR PARSING ARTICLE: $e");
+            }
+          }
+          return mockClusters;
+        } else {
+          print(" JSON does not contain 'clusters' or 'results'!");
+        }
+      } else {
+        print(" Django Error: ${response.statusCode} - ${response.body}");
+      }
+    } catch (e) {
+      print(" Flutter API Error: $e");
+    }
+    return [];
+  }
+
+  Future<Map<String, dynamic>> submitSummaryFeedback({
+    required int clusterId,
+    required int userRating,
+    String? generatedSummary,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$newsUrl/summary_feedback'),
       headers: _publicHeaders,
+      body: jsonEncode({
+        'article_id': clusterId,
+        'query': "Cluster Synthesis",
+        'user_rating': userRating,
+        'feedback_reason': userRating == 2 ? "Helpful" : "Inaccurate",
+        'generated_summary': generatedSummary ?? "",
+        'corrected_summary': "",
+      }),
     );
-    final decoded = jsonDecode(response.body);
-    if (decoded is Map && decoded.containsKey('articles')) {
-      return decoded['articles'];
-    }
-    return [];
+    return jsonDecode(response.body);
   }
 
-  // GET /articles/<id>
   Future<Map<String, dynamic>> getNewsById(int id) async {
     final response = await http.get(
-      Uri.parse('$newsUrl/articles/$id'),
+      Uri.parse('$baseUrl/api/news/$id/'),
       headers: _publicHeaders,
     );
     return jsonDecode(response.body);
   }
 
-  // GET /articles/<id>/sources
-  Future<Map<String, dynamic>> getNewsSources(int newsId) async {
-    final response = await http.get(
-      Uri.parse('$newsUrl/articles/$newsId/sources'),
-      headers: _publicHeaders,
-    );
-    return jsonDecode(response.body);
-  }
-
-  // GET /articles/<id>/related
   Future<List<dynamic>> getRelatedNews(int newsId) async {
     final response = await http.get(
-      Uri.parse('$newsUrl/articles/$newsId/related'),
+      Uri.parse('$baseUrl/api/news/$newsId/related/'),
       headers: _publicHeaders,
     );
     final decoded = jsonDecode(response.body);
-    if (decoded is Map && decoded.containsKey('articles')) {
+    if (decoded is Map && decoded.containsKey('articles'))
       return decoded['articles'];
-    }
-    return [];
+    if (decoded is Map && decoded.containsKey('results'))
+      return decoded['results'];
+    return decoded is List ? decoded : [];
   }
 
-  // GET /api/news/categories/
+  Future<Map<String, dynamic>> getNewsSources(int newsId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/news/$newsId/sources/'),
+      headers: _publicHeaders,
+    );
+    return jsonDecode(response.body);
+  }
+
   Future<List<dynamic>> getCategories() async {
     final response = await http.get(
       Uri.parse('$baseUrl/api/news/categories/'),
@@ -158,7 +243,6 @@ class ApiService {
     return [];
   }
 
-  // GET /api/news/?category=1
   Future<List<dynamic>> getNewsByCategory(int categoryId) async {
     final response = await http.get(
       Uri.parse('$newsUrl/api/news/?category=$categoryId'),
@@ -172,7 +256,6 @@ class ApiService {
     return [];
   }
 
-  // GET /api/news/?source=1
   Future<List<dynamic>> getNewsBySource(int sourceId) async {
     final response = await http.get(
       Uri.parse('$newsUrl/api/news/?source=$sourceId'),
@@ -185,8 +268,6 @@ class ApiService {
     }
     return [];
   }
-
-  // Favorites  -->  port 8000
 
   Future<List<dynamic>> getFavorites() async {
     final headers = await _authHeaders();
@@ -233,8 +314,6 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  // Notifications  -->  port 8000
-
   Future<Map<String, dynamic>> getNotificationPreferences() async {
     final headers = await _authHeaders();
     final response = await http.get(
@@ -256,9 +335,6 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  // Feedback  -->  port 8002
-
-  /// POST /article-feedback
   Future<Map<String, dynamic>> submitFeedback({
     required int articleId,
     required bool propagandaCorrect,
