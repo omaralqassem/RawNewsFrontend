@@ -1,18 +1,24 @@
+import 'package:rawnes/modules/NewsFeed/news_model.dart';
+
 class NewsClusterModel {
   final String id;
+  final int? clusterId;          
   final String title;
   final String category;
   final DateTime publishedAt;
   final String smartSummary;
+  final String? summary;         
   final String neutralConsensus;
-  final List<SourceArticleModel> articles;
+  final List<NewsModel> articles; 
 
   NewsClusterModel({
     required this.id,
+    this.clusterId,
     required this.title,
     required this.category,
     required this.publishedAt,
     required this.smartSummary,
+    this.summary,
     required this.neutralConsensus,
     required this.articles,
   });

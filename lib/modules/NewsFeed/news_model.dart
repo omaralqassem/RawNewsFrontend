@@ -32,10 +32,9 @@ class NewsModel {
   final int? clusterId;
   final double? reliabilityScore;
   final double? neutralityScore;
-  final bool? verified;
-  final String? statementType;
-  final String? attributionLabel;
-  final String? propagandaLabel;
+  final String? propagandaLabel;   
+  final String? statementType;     
+  final String? attributionLabel; 
 
   NewsModel({
     required this.id,
@@ -47,29 +46,25 @@ class NewsModel {
     this.clusterId,
     this.reliabilityScore,
     this.neutralityScore,
-    this.verified,
+    this.propagandaLabel,
     this.statementType,
     this.attributionLabel,
-    this.propagandaLabel,
   });
 
   factory NewsModel.fromJson(Map<String, dynamic> json) {
     return NewsModel(
-      id: json['id'] != null ? int.tryParse(json['id'].toString()) ?? 0 : 0,
-      title: json['title']?.toString() ?? 'No Title',
-      content: json['content']?.toString(),
-      sourceName: (json['source_name'] ?? json['source']?['name'])?.toString() ?? 'Unknown Source',
-      publishedAt: json['published_at']?.toString() ?? DateTime.now().toIso8601String(),
-      url: json['url']?.toString(),
-      clusterId: json['cluster_id'] != null ? int.tryParse(json['cluster_id'].toString()) : null,
-      
-      reliabilityScore: (json['reliability_score'] as num?)?.toDouble(),
-      neutralityScore: (json['neutrality_score'] as num?)?.toDouble(),
-      
-      verified: json['verified'] == true || json['verified'] == 'true',
-      statementType: json['statement_type']?.toString(),
-      attributionLabel: json['attribution_label']?.toString(),
-      propagandaLabel: json['propaganda_label']?.toString(),
+      id: json['id'] ?? 0,
+      title: json['title'] ?? '',
+      content: json['content'],
+      sourceName: json['source_name'] ?? '',
+      publishedAt: json['published_at'] ?? '',
+      url: json['url'],
+      clusterId: json['cluster_id'],
+      reliabilityScore: json['reliability_score']?.toDouble(),
+      neutralityScore: json['neutrality_score']?.toDouble(),
+      propagandaLabel: json['propaganda_label'],
+      statementType: json['statement_type'],
+      attributionLabel: json['attribution_label'],
     );
   }
 }

@@ -269,46 +269,32 @@ class ApiService {
     return [];
   }
 
+
+  Future<Map<String, dynamic>> toggleFavorite(int articleId) async {
+    final headers = await _authHeaders();
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/favorites/toggle/'),  
+      headers: headers,
+      body: jsonEncode({'article_id': articleId}),
+    );
+    return jsonDecode(response.body);
+  }
+
   Future<List<dynamic>> getFavorites() async {
     final headers = await _authHeaders();
     final response = await http.get(
-      Uri.parse('$baseUrl/api/favorites/'),
+      Uri.parse('$baseUrl/api/favorites/'),  
       headers: headers,
     );
     final decoded = jsonDecode(response.body);
     if (decoded is List) return decoded;
-    if (decoded is Map && decoded.containsKey('results')) {
-      return decoded['results'];
-    }
-    if (decoded is Map && decoded.containsKey('favorites')) {
-      return decoded['favorites'];
-    }
     return [];
-  }
-
-  Future<Map<String, dynamic>> toggleFavorite(int newsId) async {
-    final headers = await _authHeaders();
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/favorites/toggle/'),
-      headers: headers,
-      body: jsonEncode({'news_id': newsId}),
-    );
-    return jsonDecode(response.body);
-  }
-
-  Future<Map<String, dynamic>> removeFavorite(int newsId) async {
-    final headers = await _authHeaders();
-    final response = await http.delete(
-      Uri.parse('$baseUrl/api/favorites/remove/$newsId/'),
-      headers: headers,
-    );
-    return jsonDecode(response.body);
   }
 
   Future<Map<String, dynamic>> clearFavorites() async {
     final headers = await _authHeaders();
     final response = await http.delete(
-      Uri.parse('$baseUrl/api/favorites/clear/'),
+      Uri.parse('$baseUrl/api/favorites/clear/'),  
       headers: headers,
     );
     return jsonDecode(response.body);

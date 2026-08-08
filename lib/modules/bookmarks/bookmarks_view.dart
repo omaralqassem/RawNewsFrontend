@@ -44,14 +44,15 @@ class BookmarksView extends GetView<BookmarksController> {
           separatorBuilder: (_, __) => const SizedBox(height: 16),
           itemBuilder: (context, index) {
             final item = controller.bookmarkedItems[index];
+
             return _buildBookmarkedCard(
               context: context,
-              newsId: item.newsId,   
-              clusterId: item.newsId.toString(),
+              newsId: item.articleId,          
+              clusterId: item.articleId.toString(),
               sourceCount: 1,
-              timeAgo: item.publishedAt,
-              title: item.title,
-              description: item.description,
+              timeAgo: item.createdAt,
+              title: item.articleTitle,         
+              description: item.articleSource,  
               consensusLabel: 'SAVED',
               consensusColor: AppColors.actionBlue,
               borderColor: borderColor,

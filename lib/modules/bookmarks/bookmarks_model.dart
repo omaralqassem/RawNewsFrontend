@@ -1,31 +1,28 @@
 class BookmarkModel {
   final int id;
-  final int newsId;
-  final String title;
-  final String description;
-  final String? source;
-  final String publishedAt;
+  final int articleId;
+  final String articleTitle;
+  final String articleSource;
+  final String articleUrl;
+  final String createdAt;
 
   BookmarkModel({
     required this.id,
-    required this.newsId,
-    required this.title,
-    required this.description,
-    this.source,
-    required this.publishedAt,
+    required this.articleId,
+    required this.articleTitle,
+    required this.articleSource,
+    required this.articleUrl,
+    required this.createdAt,
   });
 
   factory BookmarkModel.fromJson(Map<String, dynamic> json) {
-    final news = json['news'] ?? json;
     return BookmarkModel(
       id: json['id'] ?? 0,
-      newsId: news['id'] ?? 0,
-      title: news['title'] ?? '',
-      description: news['description'] ?? '',
-      source: news['source']?.toString(),
-      publishedAt: news['published_at'] ?? '',
+      articleId: json['article_id'] ?? 0,
+      articleTitle: json['article_title'] ?? '',
+      articleSource: json['article_source'] ?? '',
+      articleUrl: json['article_url'] ?? '',
+      createdAt: json['created_at'] ?? '',
     );
   }
-
-  void operator [](String other) {}
 }

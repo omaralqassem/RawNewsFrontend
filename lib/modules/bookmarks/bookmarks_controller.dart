@@ -17,40 +17,29 @@ class BookmarksController extends GetxController {
     isLoading.value = true;
     try {
       final response = await _apiService.getFavorites();
-
-    print('=== BOOKMARKS DEBUG ===');
-    print('Response: $response');
-    print('Length: ${response.length}');
-    print('=======================');
-
       bookmarkedItems.assignAll(
         response.map((item) => BookmarkModel.fromJson(item)).toList(),
       );
     } catch (e) {
-
-    print('=== BOOKMARKS ERROR ===');
-    print(e.toString());
-    print('=======================');
-
       Get.snackbar('Error', 'Failed to load bookmarks');
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> removeBookmark(int newsId) async {
+  Future<void> removeBookmark(int articleId) async {
     try {
-      await _apiService.removeFavorite(newsId);
-      bookmarkedItems.removeWhere((item) => item.newsId == newsId);
-      Get.snackbar(
-        'Removed',
-        'Removed from bookmarks',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      final response = await _apiService.toggleFavorite(articleId);
+      if (response['is_favorite'] == false) {
+        bookmarkedItems.removeWhere((item) => item.articleId == articleId);
+        Get.snackbar('Removed', 'Removed from bookmarks',
+            snackPosition: SnackPosition.BOTTOM);
+      }
     } catch (e) {
       Get.snackbar('Error', 'Failed to remove bookmark');
     }
   }
+
 
   Future<void> toggleBookmark(int newsId) async {
     try {
