@@ -34,103 +34,102 @@ class HomeView extends GetView<HomeController> {
 
     final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
-    return Scaffold(
-      key: scaffoldKey,
-      backgroundColor: theme.scaffoldBackgroundColor,
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        key: scaffoldKey,
+        backgroundColor: theme.scaffoldBackgroundColor,
 
-      appBar: AppBar(
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: Icon(Icons.menu_rounded, color: textPrimary, size: 22),
-          onPressed: () => scaffoldKey.currentState?.openDrawer(),
-        ),
-        title: RichText(
-          text: TextSpan(
-            text: "RAW",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -1.0,
-              color: textPrimary,
-            ),
-            children: const [
-              TextSpan(
-                text: ".",
-                style: TextStyle(color: AppColors.actionBlue),
+        appBar: AppBar(
+          titleSpacing: 0,
+          leading: IconButton(
+            icon: Icon(Icons.menu_rounded, color: textPrimary, size: 24),
+            onPressed: () => scaffoldKey.currentState?.openDrawer(),
+          ),
+          title: RichText(
+            text: TextSpan(
+              text: "RAW",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -1.0,
+                color: textPrimary,
               ),
-              TextSpan(
-                text: "NEWS",
-                style: TextStyle(
-                  fontWeight: FontWeight.w300,
-                  letterSpacing: -0.5,
+              children: const [
+                TextSpan(
+                  text: ".",
+                  style: TextStyle(color: AppColors.actionBlue),
                 ),
-              ),
-            ],
+                TextSpan(
+                  text: "NEWS",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w300,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1.0),
+            child: Container(color: borderColor, height: 1.0),
           ),
         ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: borderColor, height: 1.0),
-        ),
-      ),
 
-      drawer: const HomeDrawer(),
+        drawer: const HomeDrawer(),
 
-      body: Obx(() => pages[controller.currentIndex.value]),
+        body: Obx(() => pages[controller.currentIndex.value]),
 
-      bottomNavigationBar: Obx(
-        () => Container(
-          decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: borderColor, width: 1.0)),
-          ),
-          child: BottomNavigationBar(
-            currentIndex: controller.currentIndex.value,
-            onTap: controller.changeTabIndex,
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: theme.scaffoldBackgroundColor,
-            selectedItemColor: AppColors.actionBlue,
-            unselectedItemColor: textSecondary.withOpacity(0.6),
-            selectedFontSize: 10,
-            unselectedFontSize: 10,
-            selectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.0,
+        bottomNavigationBar: Obx(
+          () => Container(
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: borderColor, width: 1.0)),
             ),
-            unselectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.0,
+            child: BottomNavigationBar(
+              currentIndex: controller.currentIndex.value,
+              onTap: controller.changeTabIndex,
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: theme.scaffoldBackgroundColor,
+              selectedItemColor: AppColors.actionBlue,
+              unselectedItemColor: textSecondary.withOpacity(0.6),
+              selectedFontSize: 11,
+              unselectedFontSize: 11,
+              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w900),
+              unselectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.w700,
+              ),
+              elevation: 0,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.newspaper_rounded, size: 22),
+                  ),
+                  label: "الأخبار",
+                ),
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.search_rounded, size: 22),
+                  ),
+                  label: "البحث",
+                ),
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.bookmarks_outlined, size: 22),
+                  ),
+                  label: "المحفوظات",
+                ),
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.tune_rounded, size: 22),
+                  ),
+                  label: "الإعدادات",
+                ),
+              ],
             ),
-            elevation: 0,
-            items: [
-              BottomNavigationBarItem(
-                icon: const Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Icon(Icons.newspaper_rounded, size: 20),
-                ),
-                label: "FEED",
-              ),
-              BottomNavigationBarItem(
-                icon: const Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Icon(Icons.search_rounded, size: 20),
-                ),
-                label: "SEARCH",
-              ),
-              BottomNavigationBarItem(
-                icon: const Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Icon(Icons.bookmarks_outlined, size: 20),
-                ),
-                label: "SAVED",
-              ),
-              BottomNavigationBarItem(
-                icon: const Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Icon(Icons.tune_rounded, size: 20),
-                ),
-                label: "PREFS",
-              ),
-            ],
           ),
         ),
       ),
@@ -205,7 +204,7 @@ class HomeDrawer extends GetView<HomeController> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         CircleAvatar(
-                          radius: 24,
+                          radius: 26,
                           backgroundColor: AppColors.actionBlue.withOpacity(
                             0.1,
                           ),
@@ -224,7 +223,7 @@ class HomeDrawer extends GetView<HomeController> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      user?.username ?? "Guest User",
+                      user?.username ?? "مستخدم زائر",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
@@ -260,27 +259,28 @@ class HomeDrawer extends GetView<HomeController> {
                         children: [
                           DrawerListTile(
                             icon: Icons.person_outline_rounded,
-                            title: "Profile",
+                            title: "الملف الشخصي",
                             onTap: () => Get.toNamed('/profile'),
                           ),
 
                           Obx(
                             () => DrawerListTile(
                               icon: Icons.dark_mode_outlined,
-                              title: "Dark mode",
+                              title: "الوضع الداكن",
                               trailing: Switch(
                                 value: controller.isDarkMode.value,
                                 onChanged: (_) => controller.toggleTheme(),
+                                activeColor: AppColors.actionBlue,
                               ),
                             ),
                           ),
 
                           const Spacer(),
 
-                          SectionHeader(title: "About us"),
+                          const SectionHeader(title: "معلومات التطبيق"),
                           DrawerListTile(
                             icon: Icons.info_outline,
-                            title: "About us",
+                            title: "عن التطبيق والمعلومات",
                             onTap: () => Get.toNamed('/about'),
                           ),
                         ],
@@ -304,13 +304,12 @@ class HomeDrawer extends GetView<HomeController> {
                 children: [
                   OutlinedButton.icon(
                     onPressed: controller.logout,
-                    icon: const Icon(Icons.logout_rounded, size: 16),
-                    label: Text(
-                      "logout".toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 12,
+                    icon: const Icon(Icons.logout_rounded, size: 18),
+                    label: const Text(
+                      "تسجيل الخروج",
+                      style: TextStyle(
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 1.5,
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
@@ -320,19 +319,18 @@ class HomeDrawer extends GetView<HomeController> {
                         width: 1.0,
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Center(
                     child: Text(
-                      "RAW.NEWS v1.0.0",
+                      "RAW.NEWS الإصدار 1.0.0",
                       style: TextStyle(
-                        fontSize: 8,
+                        fontSize: 9,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 1.0,
                         color: textSecondary.withOpacity(0.5),
                       ),
                     ),
