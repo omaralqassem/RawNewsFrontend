@@ -1,11 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:rawnes/core/constants/app_colors.dart';
 import 'package:rawnes/modules/NewsFeed/news_model.dart';
 import 'news_analysis_controller.dart';
 
 class NewsAnalysisView extends GetView<NewsAnalysisController> {
   const NewsAnalysisView({super.key});
+
+  Future<void> _launchArticleUrl(String urlString) async {
+    if (urlString.isEmpty) {
+      Get.snackbar("Notice", "No original link available for this article.");
+      return;
+    }
+
+    final Uri url = Uri.parse(urlString);
+    try {
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        Get.snackbar("Error", "Could not open link: $urlString");
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Invalid link format");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +41,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          "AI ANALYSIS",
+          "AI CLUSTER ANALYSIS",
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w900,
@@ -49,7 +66,9 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
           ),
           IconButton(
             icon: Icon(Icons.share_outlined, color: textPrimary),
-            onPressed: () {},
+            onPressed: () {
+              Get.snackbar("Share", "Sharing cluster details...");
+            },
           ),
         ],
         bottom: PreferredSize(
@@ -69,21 +88,11 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
           );
         }
 
-        final mainArticle = cluster.articles.isNotEmpty
-            ? cluster.articles.first
-            : null;
-        if (mainArticle == null)
-          return const Center(child: Text("No data available"));
+        if (cluster.articles.isEmpty) {
+          return const Center(child: Text("No articles found in this cluster"));
+        }
 
-        String timeAgo = "Recently";
-        try {
-          final dt = DateTime.parse(mainArticle.publishedAt);
-          final diff = DateTime.now().difference(dt);
-          if (diff.inHours > 0)
-            timeAgo = "${diff.inHours} Hours Ago";
-          else if (diff.inMinutes > 0)
-            timeAgo = "${diff.inMinutes} Minutes Ago";
-        } catch (_) {}
+        final mainArticle = cluster.articles.first;
 
         return SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -91,6 +100,40 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (controller.rxQuery.value.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.actionBlue.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.actionBlue.withOpacity(0.2),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Search: \"${controller.rxQuery.value}\"",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.actionBlue,
+                        ),
+                      ),
+                      Text(
+                        "Window: ${controller.rxTimeWindow.value}",
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -107,18 +150,18 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                       "CLUSTER #${cluster.clusterId}",
                       style: const TextStyle(
                         color: AppColors.actionBlue,
-                        fontSize: 9,
+                        fontSize: 10,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 1.0,
                       ),
                     ),
                   ),
                   Text(
-                    timeAgo,
+                    "${cluster.articles.length} Connected Sources",
                     style: TextStyle(
                       color: textSecondary,
                       fontSize: 11,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -128,7 +171,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
               Text(
                 mainArticle.title,
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.w900,
                   height: 1.3,
                   letterSpacing: -0.5,
@@ -137,7 +180,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
               ),
               const SizedBox(height: 24),
 
-              _buildSectionHeader("AI SMART SUMMARY", textPrimary),
+              _buildSectionHeader("AI NEUTRAL SUMMARY", textPrimary),
               Card(
                 margin: EdgeInsets.zero,
                 child: Padding(
@@ -146,8 +189,9 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        cluster.summary ??
-                            "AI is gathering consensus data for this topic...",
+                        (cluster.summary != null && cluster.summary!.isNotEmpty)
+                            ? cluster.summary!
+                            : "AI is currently aggregating consensus data across sources for this story cluster...",
                         style: TextStyle(
                           fontSize: 14,
                           color: textPrimary,
@@ -214,7 +258,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: cluster.articles.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                separatorBuilder: (_, __) => const SizedBox(height: 14),
                 itemBuilder: (context, index) {
                   return _buildSourceCard(
                     cluster.articles[index],
@@ -264,36 +308,68 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
     final reliabilityPercent = ((article.reliabilityScore ?? 0) * 100).toInt();
     final neutralityPercent = ((article.neutralityScore ?? 0) * 100).toInt();
 
-    final isNeutral =
-        (article.propagandaLabel ?? 'neutral').toLowerCase() == 'neutral';
+    final rawPropaganda = article.propagandaLabel ?? 'neutral';
+    final isNeutral = rawPropaganda.toLowerCase() == 'neutral';
     final propColor = isNeutral ? Colors.green : AppColors.errorRed;
+    final propLabelText = rawPropaganda.replaceAll('_', ' ').toUpperCase();
 
-    final propLabelText = (article.propagandaLabel ?? 'neutral')
+    final statementType = (article.statementType ?? 'REPORTING').toUpperCase();
+    final attributionLabel = (article.attributionLabel ?? 'UNSUPPORTED CLAIM')
         .replaceAll('_', ' ')
         .toUpperCase();
 
+    String formattedDate = "Recently";
+    try {
+      if (article.publishedAt.isNotEmpty) {
+        final dt = DateTime.parse(article.publishedAt);
+        formattedDate =
+            "${dt.day}/${dt.month}/${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}";
+      }
+    } catch (_) {}
+
     return Card(
       margin: EdgeInsets.zero,
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: borderColor, width: 1),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(18.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  article.sourceName,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: textPrimary,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          article.sourceName,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: textPrimary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (article.verified) ...[
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.verified,
+                          color: AppColors.actionBlue,
+                          size: 16,
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
+                    horizontal: 8,
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
@@ -313,23 +389,23 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
 
             Text(
               article.title,
               style: TextStyle(
                 fontSize: 13,
                 color: textSecondary,
-                height: 1.5,
+                height: 1.4,
                 fontWeight: FontWeight.w600,
               ),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
 
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: theme.scaffoldBackgroundColor,
                 borderRadius: BorderRadius.circular(8),
@@ -339,7 +415,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                 children: [
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.verified_user_outlined,
                         size: 14,
                         color: AppColors.actionBlue,
@@ -357,7 +433,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                   ),
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.balance_rounded,
                         size: 14,
                         color: AppColors.actionBlue,
@@ -379,32 +455,74 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
             const SizedBox(height: 10),
 
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(
-                  Icons.record_voice_over_outlined,
-                  size: 14,
-                  color: textSecondary,
+                Row(
+                  children: [
+                    Icon(
+                      Icons.article_outlined,
+                      size: 12,
+                      color: textSecondary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      "Type: $statementType",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 6),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.assignment_turned_in_outlined,
+                      size: 12,
+                      color: textSecondary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      "Claim: $attributionLabel",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
                 Text(
-                  "Statement Type: ${(article.statementType ?? 'REPORTING').toUpperCase()}",
+                  "Published: $formattedDate",
                   style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: textSecondary,
+                    fontSize: 9,
+                    color: textSecondary.withOpacity(0.7),
+                  ),
+                ),
+                Text(
+                  "Article ID: #${article.id}",
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: textSecondary.withOpacity(0.7),
                   ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             Divider(color: borderColor, height: 1),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
 
             GestureDetector(
-              onTap: () {
-                // TODO: Open URL
-              },
+              onTap: () => _launchArticleUrl(article.url),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [

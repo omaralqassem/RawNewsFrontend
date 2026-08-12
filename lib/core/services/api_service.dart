@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:rawnes/core/constants/api_constants.dart';
-import 'package:rawnes/modules/NewsFeed/news_model.dart';
+import 'package:rawnes/modules/news_analysis/news_analysis_model.dart';
 import 'storage_service.dart';
 
 class ApiService {
@@ -109,9 +109,9 @@ class ApiService {
     return [];
   }
 
-  Future<List<ClusterModel>> searchNews(
+  Future<SearchResponseModel?> searchNews(
     String query, {
-    String timeWindow = '7d',
+    String timeWindow = '3d',
   }) async {
     try {
       final headers = await _authHeaders();
@@ -119,69 +119,22 @@ class ApiService {
         '$baseUrl/api/news/search/',
       ).replace(queryParameters: {'q': query, 'time_window': timeWindow});
 
-      print("Asking AI to search: $uri");
-
       final response = await http.get(uri, headers: headers);
 
-      print("Backend responded with status: ${response.statusCode}");
+      print("================ RAW ================");
+      print(response.body);
+      print("====================================================");
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        if (decoded is! Map<String, dynamic>) return [];
-
-        if (decoded.containsKey('clusters') && decoded['clusters'] is List) {
-          print("Found AI Clusters in JSON!");
-          final List dynamicClusters = decoded['clusters'];
-          final List<ClusterModel> parsedClusters = [];
-
-          for (var c in dynamicClusters) {
-            try {
-              parsedClusters.add(
-                ClusterModel.fromJson(c as Map<String, dynamic>),
-              );
-            } catch (e) {
-              print(" ERROR PARSING CLUSTER: $e");
-            }
-          }
-          return parsedClusters;
-        } else if (decoded.containsKey('results') &&
-            decoded['results'] is List) {
-          print("Backend used old format. Auto-converting to UI Clusters...");
-          final List dynamicArticles = decoded['results'];
-          final List<ClusterModel> mockClusters = [];
-
-          for (int i = 0; i < dynamicArticles.length; i++) {
-            try {
-              final artMap = dynamicArticles[i] as Map<String, dynamic>;
-              artMap['id'] = artMap['id'] ?? i + 1;
-              artMap['source_name'] =
-                  artMap['source'] ?? artMap['source_name'] ?? 'Web Source';
-
-              final article = NewsModel.fromJson(artMap);
-
-              mockClusters.add(
-                ClusterModel(
-                  clusterId: i + 1000,
-                  summary:
-                      "AI Summary pending backend update. Showing raw article.",
-                  articles: [article],
-                ),
-              );
-            } catch (e) {
-              print(" ERROR PARSING ARTICLE: $e");
-            }
-          }
-          return mockClusters;
-        } else {
-          print(" JSON does not contain 'clusters' or 'results'!");
+        if (decoded is Map<String, dynamic>) {
+          return SearchResponseModel.fromJson(decoded);
         }
-      } else {
-        print(" Django Error: ${response.statusCode} - ${response.body}");
       }
     } catch (e) {
-      print(" Flutter API Error: $e");
+      print("Flutter Search API Error: $e");
     }
-    return [];
+    return null;
   }
 
   Future<Map<String, dynamic>> submitSummaryFeedback({
@@ -269,11 +222,10 @@ class ApiService {
     return [];
   }
 
-
   Future<Map<String, dynamic>> toggleFavorite(int articleId) async {
     final headers = await _authHeaders();
     final response = await http.post(
-      Uri.parse('$baseUrl/api/favorites/toggle/'),  
+      Uri.parse('$baseUrl/api/favorites/toggle/'),
       headers: headers,
       body: jsonEncode({'article_id': articleId}),
     );
@@ -283,7 +235,7 @@ class ApiService {
   Future<List<dynamic>> getFavorites() async {
     final headers = await _authHeaders();
     final response = await http.get(
-      Uri.parse('$baseUrl/api/favorites/'),  
+      Uri.parse('$baseUrl/api/favorites/'),
       headers: headers,
     );
     final decoded = jsonDecode(response.body);
@@ -294,7 +246,7 @@ class ApiService {
   Future<Map<String, dynamic>> clearFavorites() async {
     final headers = await _authHeaders();
     final response = await http.delete(
-      Uri.parse('$baseUrl/api/favorites/clear/'),  
+      Uri.parse('$baseUrl/api/favorites/clear/'),
       headers: headers,
     );
     return jsonDecode(response.body);

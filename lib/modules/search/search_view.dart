@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rawnes/core/constants/app_colors.dart';
-import 'package:rawnes/modules/NewsFeed/news_model.dart';
+import 'package:rawnes/modules/news_analysis/news_analysis_controller.dart';
+import 'package:rawnes/modules/news_analysis/news_analysis_model.dart';
+import 'package:rawnes/modules/news_analysis/news_analysis_view.dart';
 import 'search_controller.dart' as local;
-import '../news_analysis/news_analysis_view.dart';
-import '../news_analysis/news_analysis_controller.dart';
 
 class SearchView extends GetView<local.SearchController> {
   const SearchView({super.key});
@@ -38,7 +38,6 @@ class SearchView extends GetView<local.SearchController> {
                 textSecondary,
               ),
             ),
-
             Obx(
               () => SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -80,7 +79,6 @@ class SearchView extends GetView<local.SearchController> {
                 ),
               ),
             ),
-
             Expanded(
               child: Obx(() {
                 final query = controller.searchQuery.value;
@@ -133,11 +131,24 @@ class SearchView extends GetView<local.SearchController> {
                         : null;
                     if (mainArticle == null) return const SizedBox.shrink();
 
+                    String timeAgoStr = "Recently";
+                    try {
+                      if (mainArticle.publishedAt.isNotEmpty) {
+                        final dt = DateTime.parse(mainArticle.publishedAt);
+                        final diff = DateTime.now().difference(dt);
+                        if (diff.inHours > 0) {
+                          timeAgoStr = "${diff.inHours}h ago";
+                        } else if (diff.inMinutes > 0) {
+                          timeAgoStr = "${diff.inMinutes}m ago";
+                        }
+                      }
+                    } catch (_) {}
+
                     return _buildAnalyzedResultCard(
                       context: context,
                       cluster: cluster,
                       sourceCount: cluster.articles.length,
-                      timeAgo: mainArticle.publishedAt,
+                      timeAgo: timeAgoStr,
                       title: mainArticle.title,
                       description:
                           cluster.summary ?? "AI gathering consensus data...",
@@ -302,7 +313,7 @@ class SearchView extends GetView<local.SearchController> {
             ),
             const SizedBox(height: 6),
             Text(
-              "Try looking up 'Space', 'Maritime', or 'AI' to find structured publisher analysis.",
+              "Try looking up 'المجلس العربي', 'سوريا', or 'غزة' to view multi-publisher analysis.",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: textSecondary, height: 1.4),
             ),
@@ -314,7 +325,7 @@ class SearchView extends GetView<local.SearchController> {
 
   Widget _buildAnalyzedResultCard({
     required BuildContext context,
-    required ClusterModel cluster,
+    required NewsClusterModel cluster,
     required int sourceCount,
     required String timeAgo,
     required String title,
@@ -334,7 +345,11 @@ class SearchView extends GetView<local.SearchController> {
           binding: BindingsBuilder(() {
             Get.lazyPut(() => NewsAnalysisController());
           }),
-          arguments: cluster,
+          arguments: {
+            'query': controller.searchQuery.value,
+            'time_window': controller.selectedTimeWindow.value,
+            'cluster': cluster,
+          },
         );
       },
       child: Container(

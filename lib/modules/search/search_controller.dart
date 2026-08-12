@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rawnes/core/services/api_service.dart';
-import 'package:rawnes/modules/NewsFeed/news_model.dart';
-import 'dart:async'; // Required for Timer
+import 'package:rawnes/modules/news_analysis/news_analysis_model.dart';
 
 class SearchController extends GetxController {
   final ApiService apiService = ApiService();
@@ -10,9 +10,9 @@ class SearchController extends GetxController {
 
   var searchQuery = ''.obs;
   var isLoading = false.obs;
+  var selectedTimeWindow = '3d'.obs;
 
-  var selectedTimeWindow = '7d'.obs;
-  var searchResults = <ClusterModel>[].obs;
+  var searchResults = <NewsClusterModel>[].obs;
 
   Timer? _debounce;
 
@@ -53,30 +53,47 @@ class SearchController extends GetxController {
   void performSearch(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-    _debounce = Timer(const Duration(milliseconds: 1500), () {
+    _debounce = Timer(const Duration(milliseconds: 800), () {
       _executeSearch(query);
     });
   }
 
   Future<void> _executeSearch(String query) async {
     searchQuery.value = query;
-    if (query.isEmpty) {
+    if (query.trim().isEmpty) {
       searchResults.clear();
       return;
     }
 
     isLoading.value = true;
     try {
-      final results = await apiService.searchNews(
+      final SearchResponseModel? response = await apiService.searchNews(
         query,
         timeWindow: selectedTimeWindow.value,
       );
-      searchResults.assignAll(results);
+
+      if (response != null && response.clusters.isNotEmpty) {
+        searchResults.assignAll(response.clusters);
+      } else {
+        searchResults.clear();
+      }
     } catch (e) {
-      print("Search Error: $e");
+      print("Search Execution Error: $e");
+      searchResults.clear();
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void openClusterAnalysis(NewsClusterModel cluster) {
+    Get.toNamed(
+      '/news-analysis',
+      arguments: {
+        'query': searchQuery.value,
+        'time_window': selectedTimeWindow.value,
+        'cluster': cluster,
+      },
+    );
   }
 
   @override
