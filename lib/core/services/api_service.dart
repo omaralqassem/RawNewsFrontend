@@ -138,19 +138,22 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> submitSummaryFeedback({
-    required int clusterId,
-    required int userRating,
+    required int articleId,
+    required bool userRating,
     String? generatedSummary,
   }) async {
     final response = await http.post(
       Uri.parse('$newsUrl/summary_feedback'),
       headers: _publicHeaders,
       body: jsonEncode({
-        'article_id': clusterId,
+        'article_id': articleId,
         'query': "Cluster Synthesis",
         'user_rating': userRating,
-        'feedback_reason': userRating == 2 ? "Helpful" : "Inaccurate",
-        'generated_summary': generatedSummary ?? "",
+        'feedback_reason': userRating ? "Helpful" : "Inaccurate",
+        'generated_summary':
+            (generatedSummary != null && generatedSummary.isNotEmpty)
+            ? generatedSummary
+            : "AI Summary",
         'corrected_summary': "",
       }),
     );
@@ -283,18 +286,25 @@ class ApiService {
     String? correctedAttribution,
     String? notes,
   }) async {
+    final headers = await _authHeaders();
     final response = await http.post(
-      Uri.parse('$newsUrl/article-feedback'),
-      headers: _publicHeaders,
+      Uri.parse('$baseUrl/api/feedback/article/'),
+      headers: headers,
       body: jsonEncode({
         'article_id': articleId,
         'propaganda_correct': propagandaCorrect,
-        'corrected_propaganda': correctedPropaganda,
-        'statement_correct': statementCorrect,
-        'corrected_statement': correctedStatement,
+        'corrected_propaganda_label': propagandaCorrect
+            ? null
+            : correctedPropaganda,
+        'statement_type_correct': statementCorrect,
+        'corrected_statement_type': statementCorrect
+            ? null
+            : correctedStatement,
         'attribution_correct': attributionCorrect,
-        'corrected_attribution': correctedAttribution,
-        'notes': notes,
+        'corrected_attribution': attributionCorrect
+            ? null
+            : correctedAttribution,
+        'notes': notes ?? '',
       }),
     );
     return jsonDecode(response.body);

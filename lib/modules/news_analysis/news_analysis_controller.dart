@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:flutter/material.dart';
 import 'package:rawnes/core/services/api_service.dart';
 import 'package:rawnes/modules/NewsFeed/news_model.dart';
 import 'news_analysis_model.dart';
@@ -73,11 +74,13 @@ class NewsAnalysisController extends GetxController {
     summaryRating.value = value;
     try {
       final cluster = rxCluster.value;
-      if (cluster == null) return;
+      if (cluster == null || cluster.articles.isEmpty) return;
+
+      final mainArticleId = cluster.articles.first.id;
 
       await _apiService.submitSummaryFeedback(
-        clusterId: cluster.clusterId,
-        userRating: value,
+        articleId: mainArticleId,
+        userRating: value == 2,
         generatedSummary: cluster.summary,
       );
 
@@ -88,6 +91,48 @@ class NewsAnalysisController extends GetxController {
       );
     } catch (e) {
       print("Error submitting feedback: $e");
+    }
+  }
+
+  Future<bool> submitArticleFeedback({
+    required int articleId,
+    required bool propagandaCorrect,
+    String? correctedPropaganda,
+    required bool statementCorrect,
+    String? correctedStatement,
+    required bool attributionCorrect,
+    String? correctedAttribution,
+    String? notes,
+  }) async {
+    try {
+      await _apiService.submitFeedback(
+        articleId: articleId,
+        propagandaCorrect: propagandaCorrect,
+        correctedPropaganda: correctedPropaganda,
+        statementCorrect: statementCorrect,
+        correctedStatement: correctedStatement,
+        attributionCorrect: attributionCorrect,
+        correctedAttribution: correctedAttribution,
+        notes: notes,
+      );
+
+      Get.snackbar(
+        "Feedback Received",
+        "Thank you! Your feedback will help refine our AI models.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green.withOpacity(0.15),
+        colorText: Colors.green,
+      );
+      return true;
+    } catch (e) {
+      Get.snackbar(
+        "Submission Failed",
+        "Could not submit feedback to server.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.15),
+        colorText: Colors.red,
+      );
+      return false;
     }
   }
 }

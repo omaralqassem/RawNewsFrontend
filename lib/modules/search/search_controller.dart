@@ -24,11 +24,11 @@ class SearchController extends GetxController {
   ];
 
   final List<Map<String, String>> timeWindows = [
-    {'label': '1 Hour', 'value': '1h'},
-    {'label': '1 Day', 'value': '1d'},
-    {'label': '3 Days', 'value': '3d'},
-    {'label': '7 Days', 'value': '7d'},
-    {'label': '30 Days', 'value': '30d'},
+    {'label': 'ساعة واحدة', 'value': '1h'},
+    {'label': 'يوم واحد', 'value': '1d'},
+    {'label': '3 أيام', 'value': '3d'},
+    {'label': '7 أيام', 'value': '7d'},
+    {'label': '30 يوم', 'value': '30d'},
   ];
 
   void setTimeWindow(String value) {
