@@ -21,47 +21,53 @@ class BookmarksView extends GetView<BookmarksController> {
         ? AppColors.darkTextSecondary
         : AppColors.lightTextSecondary;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(
-              color: AppColors.actionBlue,
-              strokeWidth: 1.5,
-            ),
-          );
-        }
-
-        if (controller.bookmarkedItems.isEmpty) {
-          return _buildEmptyState(textPrimary, textSecondary);
-        }
-
-        return ListView.separated(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-          itemCount: controller.bookmarkedItems.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 16),
-          itemBuilder: (context, index) {
-            final item = controller.bookmarkedItems[index];
-
-            return _buildBookmarkedCard(
-              context: context,
-              newsId: item.articleId,          
-              clusterId: item.articleId.toString(),
-              sourceCount: 1,
-              timeAgo: item.createdAt,
-              title: item.articleTitle,         
-              description: item.articleSource,  
-              consensusLabel: 'SAVED',
-              consensusColor: AppColors.actionBlue,
-              borderColor: borderColor,
-              textPrimary: textPrimary,
-              textSecondary: textSecondary,
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.actionBlue,
+                strokeWidth: 2.0,
+              ),
             );
-          },
-        );
-      }),
+          }
+
+          if (controller.bookmarkedItems.isEmpty) {
+            return _buildEmptyState(textPrimary, textSecondary);
+          }
+
+          return ListView.separated(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 16.0,
+            ),
+            itemCount: controller.bookmarkedItems.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 16),
+            itemBuilder: (context, index) {
+              final item = controller.bookmarkedItems[index];
+
+              return _buildBookmarkedCard(
+                context: context,
+                newsId: item.articleId,
+                clusterId: item.articleId.toString(),
+                sourceCount: 1,
+                timeAgo: item.createdAt,
+                title: item.articleTitle,
+                description: item.articleSource,
+                consensusLabel: 'محفوظ',
+                consensusColor: AppColors.actionBlue,
+                borderColor: borderColor,
+                textPrimary: textPrimary,
+                textSecondary: textSecondary,
+              );
+            },
+          );
+        }),
+      ),
     );
   }
 
@@ -79,12 +85,18 @@ class BookmarksView extends GetView<BookmarksController> {
             ),
             const SizedBox(height: 16),
             Text(
-              "No bookmarks saved",
+              "لا توجد عناصر محفوظة حتى الآن",
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
                 color: textPrimary,
               ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "يمكنك حفظ التحليلات الإخبارية للرجوع إليها لاحقاً.",
+              style: TextStyle(fontSize: 12, color: textSecondary),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -94,7 +106,7 @@ class BookmarksView extends GetView<BookmarksController> {
 
   Widget _buildBookmarkedCard({
     required BuildContext context,
-    required int newsId, 
+    required int newsId,
     required String clusterId,
     required int sourceCount,
     required String timeAgo,
@@ -132,12 +144,11 @@ class BookmarksView extends GetView<BookmarksController> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "SAVED ANALYSIS • $sourceCount SOURCES",
+                  "تحليل محفوظ • $sourceCount مصادر",
                   style: const TextStyle(
                     color: AppColors.actionBlue,
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
                   ),
                 ),
                 Text(
@@ -154,16 +165,16 @@ class BookmarksView extends GetView<BookmarksController> {
             Text(
               title,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: FontWeight.w800,
                 color: textPrimary,
-                height: 1.35,
+                height: 1.4,
               ),
             ),
             const SizedBox(height: 10),
             Text(
               description,
-              style: TextStyle(fontSize: 12, color: textSecondary, height: 1.5),
+              style: TextStyle(fontSize: 13, color: textSecondary, height: 1.5),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -175,20 +186,19 @@ class BookmarksView extends GetView<BookmarksController> {
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
+                    horizontal: 10,
+                    vertical: 4,
                   ),
                   decoration: BoxDecoration(
                     color: consensusColor.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    consensusLabel.toUpperCase(),
+                    consensusLabel,
                     style: TextStyle(
                       color: consensusColor,
-                      fontSize: 8.5,
+                      fontSize: 10,
                       fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
                     ),
                   ),
                 ),
@@ -200,7 +210,7 @@ class BookmarksView extends GetView<BookmarksController> {
                       icon: Icon(
                         Icons.share_outlined,
                         color: textSecondary,
-                        size: 18,
+                        size: 20,
                       ),
                       onPressed: () => controller.shareItem(title),
                     ),
@@ -211,9 +221,10 @@ class BookmarksView extends GetView<BookmarksController> {
                       icon: const Icon(
                         Icons.bookmark_remove_rounded,
                         color: AppColors.errorRed,
-                        size: 18,
+                        size: 20,
                       ),
-                      onPressed: () => controller.removeBookmark(newsId),                    ),
+                      onPressed: () => controller.removeBookmark(newsId),
+                    ),
                   ],
                 ),
               ],
