@@ -200,7 +200,7 @@ class SearchView extends GetView<local.SearchController> {
       ),
       child: TextField(
         controller: controller.textController,
-        onChanged: controller.performSearch,
+        onSubmitted: controller.performSearch,
         style: TextStyle(color: textPrimary, fontSize: 14),
         cursorColor: AppColors.actionBlue,
         decoration: InputDecoration(

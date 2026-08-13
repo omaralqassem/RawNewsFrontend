@@ -109,6 +109,24 @@ class ApiService {
     return [];
   }
 
+  Future<Map<String, dynamic>> getArticleDetails(int id) async {
+    try {
+      final uri = Uri.parse('$newsUrl/article/$id');
+
+      final response = await http.get(uri, headers: _publicHeaders);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        return decoded;
+      } else {
+        print("FastAPI Feed Error: ${response.statusCode} - ${response.body}");
+      }
+    } catch (e) {
+      print("Flutter API Error (Feed): $e");
+    }
+    return {};
+  }
+
   Future<SearchResponseModel?> searchNews(
     String query, {
     String timeWindow = '3d',

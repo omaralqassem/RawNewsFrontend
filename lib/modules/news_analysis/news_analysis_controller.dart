@@ -11,13 +11,26 @@ class NewsAnalysisController extends GetxController {
   final isLoading = false.obs;
   final isSaved = false.obs;
   final summaryRating = 0.obs;
+  final details = Rxn<Map<String, dynamic>>();
 
   final ApiService _apiService = ApiService();
 
   @override
   void onInit() {
     super.onInit();
+    _getArticle(Get.arguments.id);
     _parseArguments(Get.arguments);
+  }
+
+  Future<void> _getArticle(int id) async {
+    try {
+      isLoading.value = true;
+      details.value = await _apiService.getArticleDetails(id);
+    } catch (e) {
+      print("Error fetching article details: $e");
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void _parseArguments(dynamic args) {
