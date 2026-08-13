@@ -111,7 +111,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> getArticleDetails(int id) async {
     try {
-      final uri = Uri.parse('$newsUrl/article/$id');
+      final uri = Uri.parse('$newsUrl/articles/$id');
 
       final response = await http.get(uri, headers: _publicHeaders);
 
