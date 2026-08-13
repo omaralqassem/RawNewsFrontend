@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:rawnes/core/constants/app_colors.dart';
 import 'package:rawnes/modules/NewsFeed/news_model.dart';
 import 'news_analysis_controller.dart';
+import 'package:readmore/readmore.dart';
 
 class NewsAnalysisView extends GetView<NewsAnalysisController> {
   const NewsAnalysisView({super.key});
@@ -496,7 +497,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        "مجموعة # ${cluster.clusterId}",
+                        "مجموعة # ${controller.details.value?['cluster_id'] ?? cluster.clusterId}",
                         style: const TextStyle(
                           color: AppColors.actionBlue,
                           fontSize: 12,
@@ -505,7 +506,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                       ),
                     ),
                     Text(
-                      "${cluster.articles.length} مصادر إخبارية متصلة",
+                      "${controller.related.value?.articles.length ?? cluster.articles.length} مصادر إخبارية متصلة",
                       style: TextStyle(
                         color: textSecondary,
                         fontSize: 13,
@@ -604,6 +605,49 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 28),
+
+                _buildSectionHeader("تفاصيل الخبر", textPrimary),
+                Card(
+                  margin: EdgeInsets.zero,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: borderColor, width: 1),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(22.0),
+                    child: ReadMoreText(
+                      (controller.details.value?['content']?.toString() ?? '')
+                              .trim()
+                              .isNotEmpty
+                          ? controller.details.value!['content'].toString()
+                          : "لا توجد تفاصيل متاحة لهذا الخبر.",
+                      trimMode: TrimMode.Line,
+                      trimLines: 4, // Number of lines to show before truncating
+                      colorClickableText: Colors.blue,
+                      trimCollapsedText: 'عرض المزيد',
+                      trimExpandedText: 'عرض أقل',
+                      moreStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.actionBlue,
+                      ),
+                      lessStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.actionBlue,
+                      ),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: AppColors.lightText,
+                        height: 1.7,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 28),
 
                 _buildSectionHeader(
