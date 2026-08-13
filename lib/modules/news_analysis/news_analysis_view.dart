@@ -607,18 +607,18 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                 const SizedBox(height: 28),
 
                 _buildSectionHeader(
-                  "المصادر والتقييم التحليلي (${cluster.articles.length})",
+                  "المصادر والتقييم التحليلي (${controller.related.value?.articles.length ?? 0})",
                   textPrimary,
                 ),
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: cluster.articles.length,
+                  itemCount: controller.related.value?.articles.length ?? 0,
                   separatorBuilder: (_, __) => const SizedBox(height: 16),
                   itemBuilder: (context, index) {
                     return _buildSourceCard(
                       context,
-                      cluster.articles[index],
+                      controller.related.value!.articles[index],
                       theme,
                       textPrimary,
                       textSecondary,

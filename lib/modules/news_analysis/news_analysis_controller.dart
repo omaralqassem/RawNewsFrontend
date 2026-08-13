@@ -12,6 +12,7 @@ class NewsAnalysisController extends GetxController {
   final isSaved = false.obs;
   final summaryRating = 0.obs;
   final details = Rxn<Map<String, dynamic>>();
+  final related = Rxn<NewsClusterModel>();
 
   final ApiService _apiService = ApiService();
 
@@ -19,6 +20,7 @@ class NewsAnalysisController extends GetxController {
   void onInit() {
     super.onInit();
     _getArticle(Get.arguments.id);
+    _getRelated(Get.arguments.id);
     _parseArguments(Get.arguments);
   }
 
@@ -28,6 +30,18 @@ class NewsAnalysisController extends GetxController {
       details.value = await _apiService.getArticleDetails(id);
     } catch (e) {
       print("Error fetching article details: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> _getRelated(int id) async {
+    try {
+      isLoading.value = true;
+      final data = await _apiService.getRelatedArticles(id);
+      related.value = NewsClusterModel.fromJson(data);
+    } catch (e) {
+      print("Error fetching related articles: $e");
     } finally {
       isLoading.value = false;
     }
