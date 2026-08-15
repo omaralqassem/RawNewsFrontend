@@ -358,11 +358,11 @@ class SearchView extends GetView<local.SearchController> {
           binding: BindingsBuilder(() {
             Get.lazyPut(() => NewsAnalysisController());
           }),
-          arguments: {
-            'query': controller.searchQuery.value,
-            'time_window': controller.selectedTimeWindow.value,
-            'cluster': cluster,
-          },
+          arguments:
+              // 'query': controller.searchQuery.value,
+              // 'time_window': controller.selectedTimeWindow.value,
+              // 'cluster': cluster,
+              cluster.articles.first.id,
         );
       },
       child: Container(

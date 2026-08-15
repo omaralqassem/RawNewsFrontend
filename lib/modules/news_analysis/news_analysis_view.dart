@@ -61,13 +61,13 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
 
   void _showFeedbackBottomSheet(BuildContext context, NewsModel article) {
     bool propagandaCorrect = true;
-    String selectedPropaganda = article.propagandaLabel ?? 'Neutral';
+    String selectedPropaganda = article.propagandaLabel;
 
     bool statementCorrect = true;
-    String selectedStatement = article.statementType ?? 'reporting';
+    String selectedStatement = article.statementType;
 
     bool attributionCorrect = true;
-    String selectedAttribution = article.attributionLabel ?? 'supported_claim';
+    String selectedAttribution = article.attributionLabel;
 
     final notesController = TextEditingController();
 

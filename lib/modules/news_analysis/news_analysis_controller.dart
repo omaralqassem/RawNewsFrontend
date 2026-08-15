@@ -80,10 +80,8 @@ class NewsAnalysisController extends GetxController {
       final cluster = rxCluster.value;
       if (cluster == null || cluster.articles.isEmpty) return;
 
-      final mainArticleId = cluster.articles.first.id;
-
       await _apiService.submitSummaryFeedback(
-        articleId: mainArticleId,
+        articleId: details.value!['id'],
         userRating: value == 2,
         generatedSummary: cluster.summary,
       );
