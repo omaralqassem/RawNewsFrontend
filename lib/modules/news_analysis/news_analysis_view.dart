@@ -497,7 +497,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        "مجموعة # ${controller.details.value?['cluster_id'] ?? cluster.clusterId}",
+                        "مجموعة # ${cluster.clusterId}",
                         style: const TextStyle(
                           color: AppColors.actionBlue,
                           fontSize: 12,
@@ -506,7 +506,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                       ),
                     ),
                     Text(
-                      "${controller.related.value?.articles.length ?? cluster.articles.length} مصادر إخبارية متصلة",
+                      "${cluster.articles.length} مصادر إخبارية متصلة",
                       style: TextStyle(
                         color: textSecondary,
                         fontSize: 13,
@@ -651,18 +651,18 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                 const SizedBox(height: 28),
 
                 _buildSectionHeader(
-                  "المصادر والتقييم التحليلي (${controller.related.value?.articles.length ?? 0})",
+                  "المصادر والتقييم التحليلي (${cluster.articles.length})",
                   textPrimary,
                 ),
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: controller.related.value?.articles.length ?? 0,
+                  itemCount: cluster.articles.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 16),
                   itemBuilder: (context, index) {
                     return _buildSourceCard(
                       context,
-                      controller.related.value!.articles[index],
+                      cluster.articles[index],
                       theme,
                       textPrimary,
                       textSecondary,
