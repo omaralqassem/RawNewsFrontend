@@ -279,12 +279,19 @@ class ApiService {
     return [];
   }
 
-  Future<Map<String, dynamic>> toggleFavorite(int articleId) async {
+  Future<Map<String, dynamic>> toggleFavorite(
+    Map<String, dynamic> articleData,
+  ) async {
     final headers = await _authHeaders();
     final response = await http.post(
       Uri.parse('$baseUrl/api/favorites/toggle/'),
       headers: headers,
-      body: jsonEncode({'article_id': articleId}),
+      body: jsonEncode({
+        'article_id': articleData['id'],
+        'article_title': articleData['title'],
+        'article_source': articleData['source_name'],
+        'article_url': articleData['url'],
+      }),
     );
     return jsonDecode(response.body);
   }

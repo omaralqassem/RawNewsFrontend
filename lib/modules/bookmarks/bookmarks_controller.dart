@@ -29,24 +29,17 @@ class BookmarksController extends GetxController {
 
   Future<void> removeBookmark(int articleId) async {
     try {
-      final response = await _apiService.toggleFavorite(articleId);
+      final response = await _apiService.toggleFavorite({'id': articleId});
       if (response['is_favorite'] == false) {
         bookmarkedItems.removeWhere((item) => item.articleId == articleId);
-        Get.snackbar('Removed', 'Removed from bookmarks',
-            snackPosition: SnackPosition.BOTTOM);
+        Get.snackbar(
+          'Removed',
+          'Removed from bookmarks',
+          snackPosition: SnackPosition.BOTTOM,
+        );
       }
     } catch (e) {
       Get.snackbar('Error', 'Failed to remove bookmark');
-    }
-  }
-
-
-  Future<void> toggleBookmark(int newsId) async {
-    try {
-      await _apiService.toggleFavorite(newsId);
-      fetchBookmarks();
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to update bookmark');
     }
   }
 

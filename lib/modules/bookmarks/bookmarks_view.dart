@@ -35,36 +35,43 @@ class BookmarksView extends GetView<BookmarksController> {
             );
           }
 
-          if (controller.bookmarkedItems.isEmpty) {
-            return _buildEmptyState(textPrimary, textSecondary);
-          }
+          return RefreshIndicator(
+            onRefresh: controller.fetchBookmarks,
+            child: controller.bookmarkedItems.isEmpty
+                ? SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height,
+                      child: _buildEmptyState(textPrimary, textSecondary),
+                    ),
+                  )
+                : ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 16.0,
+                    ),
+                    itemCount: controller.bookmarkedItems.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 16),
+                    itemBuilder: (context, index) {
+                      final item = controller.bookmarkedItems[index];
 
-          return ListView.separated(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20.0,
-              vertical: 16.0,
-            ),
-            itemCount: controller.bookmarkedItems.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              final item = controller.bookmarkedItems[index];
-
-              return _buildBookmarkedCard(
-                context: context,
-                newsId: item.articleId,
-                clusterId: item.articleId.toString(),
-                sourceCount: 1,
-                timeAgo: item.createdAt,
-                title: item.articleTitle,
-                description: item.articleSource,
-                consensusLabel: 'محفوظ',
-                consensusColor: AppColors.actionBlue,
-                borderColor: borderColor,
-                textPrimary: textPrimary,
-                textSecondary: textSecondary,
-              );
-            },
+                      return _buildBookmarkedCard(
+                        context: context,
+                        newsId: item.articleId,
+                        timeAgo: item.createdAt,
+                        title: item.articleTitle,
+                        description: item.articleSource,
+                        consensusLabel: 'محفوظ',
+                        consensusColor: AppColors.actionBlue,
+                        borderColor: borderColor,
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                      );
+                    },
+                  ),
           );
         }),
       ),
@@ -107,8 +114,6 @@ class BookmarksView extends GetView<BookmarksController> {
   Widget _buildBookmarkedCard({
     required BuildContext context,
     required int newsId,
-    required String clusterId,
-    required int sourceCount,
     required String timeAgo,
     required String title,
     required String description,
@@ -127,7 +132,7 @@ class BookmarksView extends GetView<BookmarksController> {
           binding: BindingsBuilder(() {
             Get.lazyPut(() => NewsAnalysisController());
           }),
-          arguments: clusterId,
+          arguments: newsId,
         );
       },
       child: Container(
@@ -144,7 +149,7 @@ class BookmarksView extends GetView<BookmarksController> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "تحليل محفوظ • $sourceCount مصادر",
+                  "تحليل محفوظ",
                   style: const TextStyle(
                     color: AppColors.actionBlue,
                     fontSize: 11,

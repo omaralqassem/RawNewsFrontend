@@ -435,9 +435,6 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
               ),
             );
           }
-
-          final mainArticle = cluster.articles.first;
-
           return SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(
@@ -518,7 +515,7 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                 const SizedBox(height: 18),
 
                 Text(
-                  mainArticle.title,
+                  controller.details.value!['title'],
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
