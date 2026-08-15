@@ -222,17 +222,13 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  Future<List<dynamic>> getRelatedNews(int newsId) async {
+  Future<Map<String, dynamic>> getSummary(int clusterId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/api/news/$newsId/related/'),
+      Uri.parse('$newsUrl/clusters/$clusterId/summary'),
       headers: _publicHeaders,
     );
     final decoded = jsonDecode(response.body);
-    if (decoded is Map && decoded.containsKey('articles'))
-      return decoded['articles'];
-    if (decoded is Map && decoded.containsKey('results'))
-      return decoded['results'];
-    return decoded is List ? decoded : [];
+    return decoded;
   }
 
   Future<Map<String, dynamic>> getNewsSources(int newsId) async {

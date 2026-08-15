@@ -8,6 +8,7 @@ class NewsAnalysisController extends GetxController {
   final rxQuery = ''.obs;
   final rxTimeWindow = ''.obs;
   final isLoading = false.obs;
+  final isRequestingSummary = false.obs;
   final isSaved = false.obs;
   final summaryRating = 0.obs;
   final details = Rxn<Map<String, dynamic>>();
@@ -41,6 +42,27 @@ class NewsAnalysisController extends GetxController {
       print("Error fetching cluster: $e");
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<String> requestSummary() async {
+    try {
+      isRequestingSummary.value = true;
+      final clusterId = details.value?['cluster_id'];
+      if (clusterId != null) {
+        final summaryData = await _apiService.getSummary(clusterId);
+        if (summaryData['status'] == 'success') {
+          final summaryText = summaryData['summary'] as String;
+          return summaryText;
+        }
+        return "No summary available.";
+      }
+      return "Cluster ID not found.";
+    } catch (e) {
+      print("Error fetching summary: $e");
+      return "Error fetching summary.";
+    } finally {
+      isRequestingSummary.value = false;
     }
   }
 

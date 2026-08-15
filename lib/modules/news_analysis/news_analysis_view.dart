@@ -529,79 +529,123 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                   "الملخص المحايد بالذكاء الاصطناعي",
                   textPrimary,
                 ),
-                Card(
-                  margin: EdgeInsets.zero,
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: borderColor, width: 1),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(22.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          (cluster.summary != null &&
-                                  cluster.summary!.isNotEmpty)
-                              ? cluster.summary!
-                              : "يقوم الذكاء الاصطناعي حالياً بتجميع البيانات وصياغة ملخص محايد لهذه القصة الإخبارية...",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: textPrimary,
-                            height: 1.7,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-                        Divider(color: borderColor, height: 1),
-                        const SizedBox(height: 14),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "هل كان هذا الملخص محايداً ومفيداً؟",
-                              style: TextStyle(
-                                color: textSecondary,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
+                if (cluster.summary == null || cluster.summary!.isEmpty)
+                  Card(
+                    margin: EdgeInsets.zero,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: borderColor, width: 1),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(22.0),
+                      child: Obx(() {
+                        if (controller.isRequestingSummary.value) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 20.0,
+                              ),
+                              child: CircularProgressIndicator(
+                                color: AppColors.actionBlue,
+                                strokeWidth: 2,
                               ),
                             ),
-                            Row(
-                              children: [
-                                GestureDetector(
-                                  onTap: () => controller.submitRating(2),
-                                  child: Obx(
-                                    () => Icon(
-                                      Icons.thumb_up_rounded,
-                                      color: controller.summaryRating.value == 2
-                                          ? AppColors.actionBlue
-                                          : textSecondary.withOpacity(0.5),
-                                      size: 22,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 20),
-                                GestureDetector(
-                                  onTap: () => controller.submitRating(1),
-                                  child: Obx(
-                                    () => Icon(
-                                      Icons.thumb_down_rounded,
-                                      color: controller.summaryRating.value == 1
-                                          ? AppColors.errorRed
-                                          : textSecondary.withOpacity(0.5),
-                                      size: 22,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                          );
+                        }
+                        return GestureDetector(
+                          onTap: () async {
+                            await controller.requestSummary();
+                          },
+                          child: Text(
+                            "لا يوجد ملخص متاح حالياً لهذه المجموعة.\nاضغط لطلب ملخص.",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: textPrimary,
+                              height: 1.7,
+                              fontWeight: FontWeight.w500,
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        );
+                      }),
+                    ),
+                  )
+                else
+                  Card(
+                    margin: EdgeInsets.zero,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: borderColor, width: 1),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(22.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            (cluster.summary != null &&
+                                    cluster.summary!.isNotEmpty)
+                                ? cluster.summary!
+                                : "يقوم الذكاء الاصطناعي حالياً بتجميع البيانات وصياغة ملخص محايد لهذه القصة الإخبارية...",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: textPrimary,
+                              height: 1.7,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          Divider(color: borderColor, height: 1),
+                          const SizedBox(height: 14),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "هل كان هذا الملخص محايداً ومفيداً؟",
+                                style: TextStyle(
+                                  color: textSecondary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () => controller.submitRating(2),
+                                    child: Obx(
+                                      () => Icon(
+                                        Icons.thumb_up_rounded,
+                                        color:
+                                            controller.summaryRating.value == 2
+                                            ? AppColors.actionBlue
+                                            : textSecondary.withOpacity(0.5),
+                                        size: 22,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 20),
+                                  GestureDetector(
+                                    onTap: () => controller.submitRating(1),
+                                    child: Obx(
+                                      () => Icon(
+                                        Icons.thumb_down_rounded,
+                                        color:
+                                            controller.summaryRating.value == 1
+                                            ? AppColors.errorRed
+                                            : textSecondary.withOpacity(0.5),
+                                        size: 22,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
                 const SizedBox(height: 28),
 
                 _buildSectionHeader("تفاصيل الخبر", textPrimary),
