@@ -45,22 +45,31 @@ class NewsAnalysisController extends GetxController {
     }
   }
 
-  Future<String> requestSummary() async {
+  Future<void> requestSummary() async {
     try {
       isRequestingSummary.value = true;
       final clusterId = details.value?['cluster_id'];
+
       if (clusterId != null) {
         final summaryData = await _apiService.getSummary(clusterId);
+
         if (summaryData['status'] == 'success') {
           final summaryText = summaryData['summary'] as String;
-          return summaryText;
+
+          final currentCluster = rxCluster.value;
+          if (currentCluster != null) {
+            rxCluster.value = NewsClusterModel(
+              clusterId: currentCluster.clusterId,
+              summary: summaryText,
+              articles: currentCluster.articles,
+            );
+          }
+          return;
         }
-        return "No summary available.";
+        print("No summary available.");
       }
-      return "Cluster ID not found.";
     } catch (e) {
       print("Error fetching summary: $e");
-      return "Error fetching summary.";
     } finally {
       isRequestingSummary.value = false;
     }
