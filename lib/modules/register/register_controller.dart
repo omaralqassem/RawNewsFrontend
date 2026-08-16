@@ -25,47 +25,37 @@ class RegisterController extends GetxController {
     isConfirmPasswordHidden.value = !isConfirmPasswordHidden.value;
   }
 
-Future<void> register() async {
-  if (!formKey.currentState!.validate()) {
-    return;
-  }
-
-  isLoading.value = true;
-
-  try {
-    final response =
-        await _apiService.register(
-      username: nameCtrl.text.trim(),
-      email: emailCtrl.text.trim(),
-      password: passwordCtrl.text.trim(),
-    );
-
-    if (response.containsKey('message')) {
-      Get.snackbar(
-        'Success',
-        response['message'],
-        duration: const Duration(
-          seconds: 5,
-        ),
-      );
-
-      Get.back();
-    } else {
-      Get.snackbar(
-        'Error',
-        response.toString(),
-      );
+  Future<void> register() async {
+    if (!formKey.currentState!.validate()) {
+      return;
     }
-  } catch (e) {
-    Get.snackbar(
-      'Error',
-      e.toString(),
-    );
-  } finally {
-    isLoading.value = false;
-  }
-}
 
+    isLoading.value = true;
+
+    try {
+      final response = await _apiService.register(
+        username: nameCtrl.text.trim(),
+        email: emailCtrl.text.trim(),
+        password: passwordCtrl.text.trim(),
+      );
+
+      if (response.containsKey('message')) {
+        Get.snackbar(
+          'تم',
+          'تم إنشاء الحساب بنجاح، يرجى تسجيل الدخول.',
+          duration: const Duration(seconds: 5),
+        );
+
+        Get.offAllNamed('/login');
+      } else {
+        Get.snackbar('Error', response.toString());
+      }
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   void navigateToLogin() {
     Get.back();

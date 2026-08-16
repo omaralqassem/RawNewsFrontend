@@ -57,7 +57,7 @@ class LoginView extends GetView<LoginController> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        "Welcome Back",
+                        "أهلاً بك",
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
@@ -71,7 +71,7 @@ class LoginView extends GetView<LoginController> {
                       const SizedBox(height: 8),
 
                       _UnderlineTextField(
-                        hintText: "Email or Phone",
+                        hintText: "البريد الإلكتروني أو رقم الهاتف",
                         icon: Icons.alternate_email_rounded,
                         controller: controller.identifierCtrl,
                         validator: Validators.emailOrSyrianMobile,
@@ -85,7 +85,7 @@ class LoginView extends GetView<LoginController> {
 
                       Obx(
                         () => _UnderlineTextField(
-                          hintText: "password".tr,
+                          hintText: "كلمة المرور",
                           icon: Icons.lock_outline_rounded,
                           controller: controller.passwordCtrl,
                           isPassword: true,
@@ -98,7 +98,7 @@ class LoginView extends GetView<LoginController> {
                           borderColor: borderColor,
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Password Required';
+                              return 'كلمة المرور مطلوبة';
                             }
                             return null;
                           },
@@ -115,7 +115,7 @@ class LoginView extends GetView<LoginController> {
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           child: const Text(
-                            "FORGOT KEY?",
+                            "نسيت كلمة المرور؟",
                             style: TextStyle(
                               color: AppColors.actionBlue,
                               fontWeight: FontWeight.w800,
@@ -131,7 +131,7 @@ class LoginView extends GetView<LoginController> {
                         () => _EditorialActionButton(
                           isLoading: controller.isLoading.value,
                           onPressed: controller.login,
-                          label: "Log In",
+                          label: "تسجيل الدخول",
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -144,7 +144,7 @@ class LoginView extends GetView<LoginController> {
                           ),
                           child: RichText(
                             text: TextSpan(
-                              text: "${"dont have account".toUpperCase()}  ",
+                              text: "ليس لديك حساب؟ ",
                               style: TextStyle(
                                 color: textSecondary,
                                 fontSize: 11,
@@ -153,7 +153,7 @@ class LoginView extends GetView<LoginController> {
                               ),
                               children: const [
                                 TextSpan(
-                                  text: "REGISTER",
+                                  text: "سجل الآن",
                                   style: TextStyle(
                                     color: AppColors.actionBlue,
                                     fontWeight: FontWeight.w900,

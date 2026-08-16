@@ -57,7 +57,7 @@ class RegisterView extends GetView<RegisterController> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        "Create Account",
+                        "إنشاء حساب",
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
@@ -71,12 +71,12 @@ class RegisterView extends GetView<RegisterController> {
                       const SizedBox(height: 8),
 
                       _UnderlineTextField(
-                        hintText: "Full name",
+                        hintText: "اسم المستخدم",
                         icon: Icons.person_outline_rounded,
                         controller: controller.nameCtrl,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Name required';
+                            return 'اسم المستخدم مطلوب';
                           }
                           return null;
                         },
@@ -89,7 +89,7 @@ class RegisterView extends GetView<RegisterController> {
                       const SizedBox(height: 20),
 
                       _UnderlineTextField(
-                        hintText: "Email",
+                        hintText: "البريد الإلكتروني",
                         icon: Icons.alternate_email_rounded,
                         controller: controller.emailCtrl,
                         keyboardType: TextInputType.emailAddress,
@@ -103,7 +103,7 @@ class RegisterView extends GetView<RegisterController> {
                       const SizedBox(height: 20),
 
                       _UnderlineTextField(
-                        hintText: "Phone",
+                        hintText: "رقم الهاتف",
                         icon: Icons.phone_android_rounded,
                         controller: controller.phoneCtrl,
                         keyboardType: TextInputType.phone,
@@ -117,7 +117,7 @@ class RegisterView extends GetView<RegisterController> {
 
                       Obx(
                         () => _UnderlineTextField(
-                          hintText: "Password",
+                          hintText: "كلمة المرور",
                           icon: Icons.lock_outline_rounded,
                           controller: controller.passwordCtrl,
                           isPassword: true,
@@ -130,10 +130,10 @@ class RegisterView extends GetView<RegisterController> {
                           borderColor: borderColor,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'password required';
+                              return 'كلمة المرور مطلوبة';
                             }
                             if (value.length < 6) {
-                              return 'password too short';
+                              return 'كلمة المرور قصيرة جداً';
                             }
                             return null;
                           },
@@ -143,7 +143,7 @@ class RegisterView extends GetView<RegisterController> {
 
                       Obx(
                         () => _UnderlineTextField(
-                          hintText: "Confirm password",
+                          hintText: "تأكيد كلمة المرور",
                           icon: Icons.lock_clock_outlined,
                           controller: controller.confirmPasswordCtrl,
                           isPassword: true,
@@ -157,10 +157,10 @@ class RegisterView extends GetView<RegisterController> {
                           borderColor: borderColor,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Confirm password required';
+                              return 'تأكيد كلمة المرور مطلوب';
                             }
                             if (value != controller.passwordCtrl.text) {
-                              return 'passwords does not match';
+                              return 'كلمات المرور غير  متطابقة';
                             }
                             return null;
                           },
@@ -171,7 +171,7 @@ class RegisterView extends GetView<RegisterController> {
                         () => _EditorialActionButton(
                           isLoading: controller.isLoading.value,
                           onPressed: controller.register,
-                          label: "Register",
+                          label: "إنشاء حساب",
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -184,7 +184,7 @@ class RegisterView extends GetView<RegisterController> {
                           ),
                           child: RichText(
                             text: TextSpan(
-                              text: "${"Already have account".toUpperCase()}  ",
+                              text: "هل لديك حساب؟ ",
                               style: TextStyle(
                                 color: textSecondary,
                                 fontSize: 11,
@@ -193,7 +193,7 @@ class RegisterView extends GetView<RegisterController> {
                               ),
                               children: const [
                                 TextSpan(
-                                  text: "LOGIN",
+                                  text: "تسجيل الدخول",
                                   style: TextStyle(
                                     color: AppColors.actionBlue,
                                     fontWeight: FontWeight.w900,

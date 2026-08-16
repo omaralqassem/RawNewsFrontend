@@ -6,7 +6,7 @@ import 'package:rawnes/core/theme/initial_binding.dart';
 import 'package:rawnes/routes/app_pages.dart';
 import 'package:get_storage/get_storage.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
   runApp(const MyApp());
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'RawNews',
       debugShowCheckedModeBanner: false,
-
+      locale: const Locale('ar', 'SA'),
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,

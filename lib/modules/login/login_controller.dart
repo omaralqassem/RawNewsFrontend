@@ -18,46 +18,36 @@ class LoginController extends GetxController {
   }
 
   Future<void> login() async {
-  if (!formKey.currentState!.validate()) {
-    return;
-  }
-
-  isLoading.value = true;
-
-  try {
-    final response =
-        await _apiService.login(
-      email: identifierCtrl.text.trim(),
-      password: passwordCtrl.text.trim(),
-    );
-
-    if (response.containsKey('access')) {
-      await StorageService.saveTokens(
-        access: response['access'],
-        refresh: response['refresh'],
-      );
-
-      Get.snackbar(
-        'Success',
-        'Login Successful',
-      );
-
-      Get.offAllNamed('/home');
-    } else {
-      Get.snackbar(
-        'Login Failed',
-        response.toString(),
-      );
+    if (!formKey.currentState!.validate()) {
+      return;
     }
-  } catch (e) {
-    Get.snackbar(
-      'Error',
-      e.toString(),
-    );
-  } finally {
-    isLoading.value = false;
+
+    isLoading.value = true;
+
+    try {
+      final response = await _apiService.login(
+        email: identifierCtrl.text.trim(),
+        password: passwordCtrl.text.trim(),
+      );
+
+      if (response.containsKey('access')) {
+        await StorageService.saveTokens(
+          access: response['access'],
+          refresh: response['refresh'],
+        );
+
+        Get.snackbar('قشطة', 'تم تسجيل الدخول بنجاح');
+
+        Get.offAllNamed('/home');
+      } else {
+        Get.snackbar('Login Failed', response.toString());
+      }
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+    } finally {
+      isLoading.value = false;
+    }
   }
-}
 
   void navigateToRegister() {
     Get.toNamed('/sign-up');
