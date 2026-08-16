@@ -64,31 +64,57 @@ class FeedView extends GetView<FeedController> {
                   children: [
                     _buildSearchShortcut(theme, borderColor, textSecondary),
                     const SizedBox(height: 24),
-
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "أحدث الأخبار",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.5,
-                            color: textPrimary,
-                          ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              margin: const EdgeInsets.only(left: 8),
+                              decoration: const BoxDecoration(
+                                color: AppColors.actionBlue,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            Text(
+                              "أحدث الأخبار",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.5,
+                                color: textPrimary,
+                              ),
+                            ),
+                          ],
                         ),
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppColors.actionBlue,
-                            shape: BoxShape.circle,
+                        IconButton(
+                          onPressed: () => _showFilterBottomSheet(
+                            context,
+                            theme,
+                            textPrimary,
+                          ),
+                          icon: Obx(
+                            () => Icon(
+                              Icons.tune_rounded,
+                              color:
+                                  controller
+                                          .selectedStatementType
+                                          .value
+                                          .isNotEmpty ||
+                                      controller
+                                          .selectedNeutrality
+                                          .value
+                                          .isNotEmpty
+                                  ? AppColors.actionBlue
+                                  : textPrimary,
+                            ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
-
                     Obx(() {
                       if (controller.isLoading.value) {
                         return const SizedBox(
@@ -261,6 +287,182 @@ class FeedView extends GetView<FeedController> {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  void _showFilterBottomSheet(
+    BuildContext context,
+    ThemeData theme,
+    Color textPrimary,
+  ) {
+    String tempStatementType = controller.selectedStatementType.value;
+    String tempNeutrality = controller.selectedNeutrality.value;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "تصفية الأخبار",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      "نوع المحتوى",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 10,
+                      children: [
+                        _buildFilterChip(
+                          'الكل',
+                          '',
+                          tempStatementType,
+                          (val) => setState(() => tempStatementType = val),
+                          theme,
+                        ),
+                        _buildFilterChip(
+                          'تقرير',
+                          'reporting',
+                          tempStatementType,
+                          (val) => setState(() => tempStatementType = val),
+                          theme,
+                        ),
+                        _buildFilterChip(
+                          'رأي',
+                          'opinion',
+                          tempStatementType,
+                          (val) => setState(() => tempStatementType = val),
+                          theme,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      "مستوى الحياد",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 10,
+                      children: [
+                        _buildFilterChip(
+                          'الكل',
+                          '',
+                          tempNeutrality,
+                          (val) => setState(() => tempNeutrality = val),
+                          theme,
+                        ),
+                        _buildFilterChip(
+                          'حيادي',
+                          'high',
+                          tempNeutrality,
+                          (val) => setState(() => tempNeutrality = val),
+                          theme,
+                        ),
+                        _buildFilterChip(
+                          'متحيز',
+                          'low',
+                          tempNeutrality,
+                          (val) => setState(() => tempNeutrality = val),
+                          theme,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.actionBlue,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          controller.applyFilters(
+                            tempStatementType,
+                            tempNeutrality,
+                          );
+                          Get.back();
+                        },
+                        child: const Text(
+                          "تطبيق الفلاتر",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildFilterChip(
+    String label,
+    String value,
+    String groupValue,
+    Function(String) onSelected,
+    ThemeData theme,
+  ) {
+    final isSelected = value == groupValue;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (bool selected) {
+        if (selected) onSelected(value);
+      },
+      selectedColor: AppColors.actionBlue.withOpacity(0.2),
+      labelStyle: TextStyle(
+        color: isSelected
+            ? AppColors.actionBlue
+            : theme.textTheme.bodyMedium?.color,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
+      backgroundColor: theme.cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(
+          color: isSelected
+              ? AppColors.actionBlue
+              : Colors.grey.withOpacity(0.3),
+        ),
       ),
     );
   }

@@ -7,16 +7,33 @@ class FeedController extends GetxController {
   final newsList = <NewsModel>[].obs;
   final ApiService _apiService = ApiService();
 
+  final selectedStatementType = ''.obs;
+  final selectedNeutrality = ''.obs;
+
   @override
   void onInit() {
     super.onInit();
     fetchLatestNews();
   }
 
+  void applyFilters(String statementType, String neutrality) {
+    selectedStatementType.value = statementType;
+    selectedNeutrality.value = neutrality;
+    fetchLatestNews();
+  }
+
   Future<void> fetchLatestNews() async {
     isLoading.value = true;
     try {
-      final response = await _apiService.getAllNews();
+      final response = await _apiService.getAllNews(
+        statementType: selectedStatementType.value.isEmpty
+            ? null
+            : selectedStatementType.value,
+        neutrality: selectedNeutrality.value.isEmpty
+            ? null
+            : selectedNeutrality.value,
+      );
+
       newsList.assignAll(
         response.map((item) => NewsModel.fromJson(item)).toList(),
       );

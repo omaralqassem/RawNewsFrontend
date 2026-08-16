@@ -28,8 +28,16 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
   String _formatPropagandaAr(String? raw) {
     if (raw == null) return "محايد";
     final clean = raw.trim();
-    if (clean.toLowerCase() == 'neutral') return "محايد (غير منحاز)";
+
+    if (clean.toLowerCase() == 'neutral' ||
+        clean.toLowerCase() == 'no_propaganda') {
+      return "محايد (غير منحاز)";
+    }
+
     switch (clean) {
+      case 'propaganda':
+      case 'Propaganda':
+        return "منحاز";
       case 'Loaded_Language':
         return "لغة مشحونة عاطفياً";
       case 'Name_Calling-Labeling':

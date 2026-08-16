@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:rawnes/core/constants/api_constants.dart';
 import 'package:rawnes/modules/news_analysis/news_analysis_model.dart';
@@ -8,7 +9,7 @@ import 'storage_service.dart';
 class ApiService {
   static const String baseUrl = ApiConstants.baseUrl;
   static const String newsUrl = ApiConstants.newsUrl;
-
+  final Dio _dio = Dio();
   static Future<Map<String, String>> _authHeaders() async {
     final access = await StorageService.getAccessToken();
     return {
@@ -83,14 +84,35 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  Future<List<dynamic>> getAllNews({int page = 1, int pageSize = 10}) async {
+  Future<List<dynamic>> getAllNews({
+    int page = 1,
+    int pageSize = 10,
+    String? statementType,
+    String? neutrality,
+  }) async {
     try {
-      final uri = Uri.parse('$newsUrl/articles/feed').replace(
-        queryParameters: {
-          'page': page.toString(),
-          'page_size': pageSize.toString(),
-        },
-      );
+      final Map<String, String> queryParams = {
+        'page': page.toString(),
+        'page_size': pageSize.toString(),
+      };
+
+      bool hasFilters = false;
+
+      if (statementType != null && statementType.isNotEmpty) {
+        queryParams['statement_type'] = statementType;
+        hasFilters = true;
+      }
+
+      if (neutrality != null && neutrality.isNotEmpty) {
+        queryParams['neutrality'] = neutrality;
+        hasFilters = true;
+      }
+
+      final String endpoint = hasFilters
+          ? '$newsUrl/articles/feed/details/'
+          : '$newsUrl/articles/feed/';
+
+      final uri = Uri.parse(endpoint).replace(queryParameters: queryParams);
 
       final response = await http.get(uri, headers: _publicHeaders);
 
@@ -99,6 +121,8 @@ class ApiService {
 
         if (decoded is Map && decoded.containsKey('articles')) {
           return decoded['articles'];
+        } else if (decoded is List) {
+          return decoded;
         }
       } else {
         print("FastAPI Feed Error: ${response.statusCode} - ${response.body}");
