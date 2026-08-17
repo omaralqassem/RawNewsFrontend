@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:rawnes/core/services/storage_service.dart';
 import 'package:rawnes/modules/Preferences/preferencesModel.dart';
+
+List<String> normalizeStringList(List<dynamic>? values) {
+  if (values == null) return [];
+
+  return values
+      .map((value) => value.toString().trim())
+      .where((value) => value.isNotEmpty)
+      .toSet()
+      .toList();
+}
 
 class PreferencesController extends GetxController {
   final rxPreferences = UserPreferences.initial().obs;
@@ -22,7 +33,12 @@ class PreferencesController extends GetxController {
     _loadStoredPreferences();
   }
 
-  void _loadStoredPreferences() {}
+  Future<void> _loadStoredPreferences() async {
+    rxPreferences.value.mutedSources =
+        (await StorageService.getMutedSources()) ?? [];
+    rxPreferences.value.favoriteSources =
+        (await StorageService.getFavSources()) ?? [];
+  }
 
   void addPreferredEntity(String entity) {
     if (entity.trim().isEmpty) return;
@@ -136,7 +152,11 @@ class PreferencesController extends GetxController {
     _savePreferences();
   }
 
-  void _savePreferences() {
+  Future<void> _savePreferences() async {
     final _ = rxPreferences.value.toJson();
+    await StorageService.saveSources(
+      muted: normalizeStringList(rxPreferences.value.mutedSources),
+      fav: normalizeStringList(rxPreferences.value.favoriteSources),
+    );
   }
 }

@@ -23,6 +23,25 @@ class StorageService {
     return prefs.getString(_refreshKey);
   }
 
+  static Future<void> saveSources({
+    required List<String> muted,
+    required List<String> fav,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('mutedSorces', muted);
+    await prefs.setStringList('favSources', fav);
+  }
+
+  static Future<List<String>?> getMutedSources() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList('mutedSorces');
+  }
+
+  static Future<List<String>?> getFavSources() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList('favSources');
+  }
+
   static Future<void> clearTokens() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_accessKey);
