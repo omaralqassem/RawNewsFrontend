@@ -382,14 +382,14 @@ class FeedView extends GetView<FeedController> {
                         ),
                         _buildFilterChip(
                           'حيادي',
-                          'high',
+                          'neutral',
                           tempNeutrality,
                           (val) => setState(() => tempNeutrality = val),
                           theme,
                         ),
                         _buildFilterChip(
                           'متحيز',
-                          'low',
+                          'propaganda',
                           tempNeutrality,
                           (val) => setState(() => tempNeutrality = val),
                           theme,
