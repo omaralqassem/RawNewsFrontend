@@ -36,17 +36,12 @@ class RegisterController extends GetxController {
       final response = await _apiService.register(
         username: nameCtrl.text.trim(),
         email: emailCtrl.text.trim(),
+        phone: phoneCtrl.text.trim(),
         password: passwordCtrl.text.trim(),
       );
 
       if (response.containsKey('message')) {
-        Get.snackbar(
-          'تم',
-          'تم إنشاء الحساب بنجاح، يرجى تسجيل الدخول.',
-          duration: const Duration(seconds: 5),
-        );
-
-        Get.offAllNamed('/login');
+        Get.snackbar('قشطة', 'تم إنشاء الحساب بنجاح، يرجى تسجيل الدخول.');
       } else {
         Get.snackbar('Error', response.toString());
       }

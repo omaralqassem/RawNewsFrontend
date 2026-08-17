@@ -33,8 +33,8 @@ class BookmarksController extends GetxController {
       if (response['is_favorite'] == false) {
         bookmarkedItems.removeWhere((item) => item.articleId == articleId);
         Get.snackbar(
-          'Removed',
-          'Removed from bookmarks',
+          'تم إلغاء الحفظ',
+          'حذف الخبر من المحفوظات',
           snackPosition: SnackPosition.BOTTOM,
         );
       }

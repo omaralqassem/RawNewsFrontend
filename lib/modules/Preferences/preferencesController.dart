@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rawnes/core/services/storage_service.dart';
+import 'package:rawnes/core/storage/local_storage.dart' as LocalStorage;
 import 'package:rawnes/modules/Preferences/preferencesModel.dart';
 
 List<String> normalizeStringList(List<dynamic>? values) {
@@ -38,6 +39,7 @@ class PreferencesController extends GetxController {
         (await StorageService.getMutedSources()) ?? [];
     rxPreferences.value.favoriteSources =
         (await StorageService.getFavSources()) ?? [];
+    rxPreferences.value.isDarkMode = LocalStorage.StorageService.getDarkMode();
   }
 
   void addPreferredEntity(String entity) {
@@ -137,11 +139,12 @@ class PreferencesController extends GetxController {
     _savePreferences();
   }
 
-  void toggleTheme(bool isDark) {
+  Future<void> toggleTheme(bool isDark) async {
     rxPreferences.update((val) {
       if (val != null) val.isDarkMode = isDark;
     });
     Get.changeThemeMode(isDark ? ThemeMode.dark : ThemeMode.light);
+    await LocalStorage.StorageService.setDarkMode(isDark);
     _savePreferences();
   }
 

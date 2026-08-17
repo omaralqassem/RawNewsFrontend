@@ -531,7 +531,45 @@ class NewsAnalysisView extends GetView<NewsAnalysisController> {
                     color: textPrimary,
                   ),
                 ),
-                const SizedBox(height: 26),
+                const SizedBox(height: 10),
+                // Named-entity recognition results (people, organizations, locations)
+                if (controller.persons.isNotEmpty ||
+                    controller.organizations.isNotEmpty ||
+                    controller.locations.isNotEmpty) ...[
+                  if (controller.persons.isNotEmpty) ...[
+                    Text(
+                      "الأشخاص: ${controller.persons.join('، ')}.",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+                  if (controller.organizations.isNotEmpty) ...[
+                    Text(
+                      "المنظمات: ${controller.organizations.join('، ')}.",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+                  if (controller.locations.isNotEmpty) ...[
+                    Text(
+                      "الأماكن: ${controller.locations.join('، ')}.",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ],
 
                 _buildSectionHeader(
                   "الملخص المحايد بالذكاء الاصطناعي",

@@ -18,8 +18,13 @@ class ProfileController extends GetxController {
 
   final selectedTopics = <String>[].obs;
   final List<String> availableTopics = [
-    "POLITICS", "TECHNOLOGY", "BUSINESS",
-    "SCIENCE", "CULTURE", "SPORTS", "HEALTH",
+    "سياسة",
+    "تقنية",
+    "أعمال",
+    "علوم",
+    "ثقافة",
+    "رياضة",
+    "صحة",
   ];
 
   final ApiService _apiService = ApiService();

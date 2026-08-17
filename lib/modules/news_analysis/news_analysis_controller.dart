@@ -12,6 +12,9 @@ class NewsAnalysisController extends GetxController {
   final isSaved = false.obs;
   final summaryRating = 0.obs;
   final details = Rxn<Map<String, dynamic>>();
+  List<String> persons = [];
+  List<String> organizations = [];
+  List<String> locations = [];
   final ApiService _apiService = ApiService();
 
   @override
@@ -25,11 +28,44 @@ class NewsAnalysisController extends GetxController {
     try {
       isLoading.value = true;
       details.value = await _apiService.getArticleDetails(id);
+      extractNER();
       await _getCluster(details.value!['cluster_id']);
     } catch (e) {
       print("Error fetching article details: $e");
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  void extractNER() {
+    final p = details.value?['persons'];
+    if (p is List) {
+      persons = p
+          .map((e) => e?.toString() ?? '')
+          .where((s) => s.isNotEmpty)
+          .toList();
+    } else {
+      persons = [];
+    }
+
+    final o = details.value?['organizations'];
+    if (o is List) {
+      organizations = o
+          .map((e) => e?.toString() ?? '')
+          .where((s) => s.isNotEmpty)
+          .toList();
+    } else {
+      organizations = [];
+    }
+
+    final l = details.value?['locations'];
+    if (l is List) {
+      locations = l
+          .map((e) => e?.toString() ?? '')
+          .where((s) => s.isNotEmpty)
+          .toList();
+    } else {
+      locations = [];
     }
   }
 
@@ -96,8 +132,8 @@ class NewsAnalysisController extends GetxController {
       final response = await _apiService.toggleFavorite(details.value!);
       isSaved.value = response['is_favorite'] ?? false;
       Get.snackbar(
-        isSaved.value ? 'Saved' : 'Removed',
-        response['message'] ?? '',
+        isSaved.value ? 'تم الحفظ' : 'تم إلغاء الحفظ',
+        isSaved.value ? 'أضيف الخبر إلى المحفوظات' : 'حذف الخبر من المحفوظات',
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
@@ -118,8 +154,8 @@ class NewsAnalysisController extends GetxController {
       );
 
       Get.snackbar(
-        "Feedback Sent",
-        "Thank you for rating!",
+        "تم التسجيل",
+        "شكراً لتقييمك!",
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e) {
@@ -150,8 +186,8 @@ class NewsAnalysisController extends GetxController {
       );
 
       Get.snackbar(
-        "Feedback Received",
-        "Thank you! Your feedback will help refine our AI models.",
+        "تم التسجيل",
+        "شكراً لك! تقييمك سيساعد في تحسين أنظمتنا.",
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.green.withOpacity(0.15),
         colorText: Colors.green,
